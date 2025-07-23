@@ -1,0 +1,243 @@
+.creator-wrapper {
+  position: absolute;
+  top: 60px; /* Below fixed header */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+/*   color: #333; */
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar {
+  width: 350px;
+  background-color: #1e3a5f;
+  color: white;
+  padding: 0 10px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  padding: 10px;
+  text-align: center;
+}
+
+.item {
+  background: #315e8a;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.item:last-child {
+  background: #244870;
+  text-align: center;
+  font-size: 24px;
+  color: #fff;
+}
+
+.editor-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 60px; /* Space for button at bottom */
+  flex-grow: 1;
+  background: #a19090;
+  max-width: 600px;
+  min-width: 400px;
+  width: 50%;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.editor-header {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.input-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  padding-bottom: 60px; /* Space for button at bottom */
+}
+
+.editor-panel > *:not(.action-buttons):last-child {
+  margin-bottom: 0 !important;
+}
+
+
+.action-buttons {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  /* border-top: 1px solid #ccc; */
+}
+
+.save-btn, .delete-btn {
+  flex: 1;
+  padding: 15px 0;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.save-btn {
+  background-color: #70a75f; /* soft green */
+  color: #000;
+}
+
+.delete-btn {
+  background-color: #c04d4d; /* soft red */
+  color: #000;
+}
+
+
+.field {
+  margin-bottom: 15px;
+  padding-right: 10%;
+}
+
+.field label {
+  display: block;
+  font-weight: bold;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  max-width: 600px;
+  padding: 12px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.field.inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.field.inline .field-left {
+  flex: 1;
+}
+
+.field.inline .field-right {
+  width: 25%;
+  min-width: 100px; /* fallback in case space is too small */
+}
+
+.hotel-results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.hotel-card {
+  display: flex;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  padding: 10px;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.hotel-card img {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.hotel-info {
+  flex-grow: 1;
+}
+
+.hotel-info h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.hotel-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.hotel-price {
+  font-weight: bold;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.select-hotel-btn {
+  background-color: #007f5f;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.btn {
+  padding: 10px 20px;
+  background: #1e3a5f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #244870;
+}
+
+.type-fields .field {
+  margin-bottom: 15px;
+}

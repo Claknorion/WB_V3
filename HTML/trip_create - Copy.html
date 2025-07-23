@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trip Creator</title>
+  <link rel="stylesheet" href="../CSS/styles.css" />
+  <link rel="stylesheet" href="../CSS/trip_create.css" />
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-bar">
+    <div class="logo">Trip Creator</div>
+    <div class="account-button">
+      <a href="../PHP/login.php" class="btn-account">Login</a>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="creator-wrapper">
+    <div class="sidebar">
+      <h2 class="section-title">Trip Items</h2>
+      <div class="item">Flight to Sydney</div>
+      <div class="item">Hotel: Four Seasons</div>
+      <div class="item">Day Trip: Blue Mountains</div>
+      <div class="item" onclick="openEditor()">+</div>
+    </div>
+
+    <div class="editor-panel">
+      <div class="editor-header section-title">Item Editor</div>
+      <div class="form-row">
+        <label for="item-date">Datum <span class="required">*</span></label>
+        <input type="date" id="item-date" name="item-date" required>
+
+        <label for="item-time">Tijd</label>
+        <div class="time-input-wrapper">
+          <input type="time" id="item-time" name="item-time">
+          <button type="button" class="clear-time" onclick="document.getElementById('item-time').value = ''">✕</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="type">Type</label>
+        <select id="type">
+          <option>Flight</option>
+          <option>Hotel</option>
+          <option>Activity</option>
+          <option>Transport</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder="e.g. Arrival in Sydney" />
+      </div>
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" rows="5" placeholder="Details about this trip item..."></textarea>
+      </div>
+      <div class="field">
+        <label for="date">Date</label>
+        <input type="date" id="date" />
+      </div>
+      <button class="btn" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3>Search Item</h3>
+      <input type="text" placeholder="Search for item name..." />
+      <button class="btn" style="margin-top:10px;">Search</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function openEditor() {
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function saveItem() {
+      alert("Saving item... (placeholder)");
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('modal');
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>

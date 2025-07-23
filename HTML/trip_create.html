@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trip Creator</title>
+  <link rel="stylesheet" href="../CSS/styles.css" />
+  <link rel="stylesheet" href="../CSS/trip_create.css" />
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-bar">
+    <div class="logo">Trip Creator</div>
+    <div class="account-button">
+      <a href="../PHP/login.php" class="btn-account">Login</a>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="creator-wrapper">
+    <div class="sidebar">
+      <h2 class="section-title">Trip Items</h2>
+      <div class="item">Flight to Sydney</div>
+      <div class="item">Hotel: Four Seasons</div>
+      <div class="item">Day Trip: Blue Mountains</div>
+      <div class="item" onclick="openEditor()">+</div>
+    </div>
+
+    <div class="editor-panel">
+      <div class="editor-header section-title">Item Editor</div>
+
+      <!-- Date and Time Row -->
+      <div class="field inline">
+        <div class="field-left">
+          <label for="date">Date</label>
+          <input type="date" id="date" required />
+        </div>
+        <div class="field-right">
+          <label for="time">Time</label>
+          <input type="time" id="time" />
+        </div>
+      </div>
+
+
+      <!-- Type Selector -->
+      <div class="field">
+        <label for="mainType">Type</label>
+        <select id="mainType" onchange="handleTypeChange()">
+          <option value="">-- Selecteer type --</option>
+          <option value="vlucht">Vluchten</option>
+          <option value="accommodatie">Accommodatie</option>
+          <option value="vervoer">Vervoer</option>
+          <option value="excursie">Excursies</option>
+          <option value="route">Route / Locatie informatie</option>
+          <option value="notitie">Notitie pagina</option>
+        </select>
+      </div>
+
+      <!-- Dynamic fields for Accommodatie -->
+      <!--       <div id="accommodatieFields" style="display:none;">
+        <div class="field">
+          <label for="hotelName">Hotelnaam</label>
+          <input type="text" id="hotelName" placeholder="Bijv. Four Seasons Sydney" />
+        </div>
+        <div class="field">
+          <label for="hotelAddress">Adres</label>
+          <input type="text" id="hotelAddress" placeholder="Straat + Plaats" />
+        </div>
+        <div class="field">
+          <label for="nights">Aantal nachten</label>
+          <input type="number" id="nights" min="1" placeholder="Bijv. 2" />
+        </div>
+      </div> -->
+
+      <!-- Dynamic fields for Vlucht -->
+      <div id="vluchtFields" style="display:none;">
+        <div class="field">
+          <label for="vluchtVan">Van</label>
+          <input type="text" id="vluchtVan" placeholder="Bijv. Amsterdam (AMS)" />
+        </div>
+        <div class="field">
+          <label for="vluchtNaar">Naar</label>
+          <input type="text" id="vluchtNaar" placeholder="Bijv. Sydney (SYD)" />
+        </div>
+        <div class="field">
+          <label for="maatschappij">Maatschappij</label>
+          <input type="text" id="maatschappij" placeholder="Bijv. Singapore Airlines" />
+        </div>
+      </div>
+
+      <!-- Dynamic fields for Accommodatie -->
+        <!--       <div id="accommodatieFields" style="display:none;">
+        <div class="field inline">
+          <div class="field-left">
+            <label for="searchCity">Stad</label>
+            <input type="text" id="searchCity" placeholder="Bijv. Sydney" oninput="searchHotels()" />
+          </div>
+          <div class="field-right">
+            <label for="searchNights">Aantal nachten</label>
+            <input type="number" id="searchNights" min="1" placeholder="Bijv. 2" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="searchName">Zoek hotelnaam</label>
+          <input type="text" id="searchName" placeholder="Bijv. Four Seasons" oninput="filterHotelResults()" />
+        </div>
+        <div id="hotelResults" class="hotel-result-container"> -->
+          <!-- Row for city and nights -->
+          <!--           <div class="field-row">
+            <input type="text" id="stad-input" placeholder="Stad" class="field-left" />
+            <input type="number" id="nachten-input" placeholder="Nachten" class="field-right" />
+          </div> -->
+
+          <!-- Search box for filtering hotels by name -->
+          <!--           <div class="field-row">
+            <input type="text" id="hotel-search-input" placeholder="Zoek hotelnaam..." />
+          </div> -->
+
+          <!-- Container for hotel results -->
+          <!--           <div id="hotel-results" class="hotel-results-container"></div>
+        </div>        
+      </div> -->
+
+      <!-- Dynamic fields for Accommodatie -->
+      <div id="accommodatieFields" style="display:none;">
+        <!-- Inline input for Stad and Aantal nachten -->
+        <div class="field inline">
+          <div class="field-left">
+            <label for="searchCity">Stad</label>
+            <input type="text" id="searchCity" placeholder="Bijv. Sydney" oninput="searchHotels()" />
+          </div>
+          <div class="field-right">
+            <label for="searchNights">Aantal nachten</label>
+            <input type="number" id="searchNights" min="1" placeholder="Bijv. 2" />
+          </div>
+        </div>
+
+        <!-- Hotel name filter -->
+        <div class="field">
+          <label for="searchName">Zoek hotelnaam</label>
+          <input type="text" id="searchName" placeholder="Bijv. Four Seasons" oninput="filterHotelResults()" />
+        </div>
+
+        <!-- Container for hotel results -->
+        <div id="hotel-results" class="hotel-results-container"></div>
+      </div>
+
+
+
+      <!-- <button class="btn" onclick="saveItem()">Save Item</button> -->
+      <div id="actionButtons" class="action-buttons">
+        <button id="saveItemBtn" class="save-btn">Save</button>
+        <!-- Delete button will be added dynamically when needed -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3>Search Item</h3>
+      <input type="text" placeholder="Search for item name..." />
+      <button class="btn" style="margin-top:10px;">Search</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../JS/trip_create.js"></script>
+</body>
+</html>
