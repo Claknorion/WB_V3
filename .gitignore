@@ -1,6 +1,7 @@
 # Ignore system files
 .DS_Store
 Thumbs.db
+db.php
 
 # Ignore logs
 *.log
