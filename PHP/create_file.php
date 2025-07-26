@@ -47,9 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Insert into Persoon_info
         $stmt2 = $pdo->prepare("INSERT INTO Persoon_info 
-            (UID, Aanhef, Voornaam, Roepnaam, Tuss1, Tuss2, Achternaam)
-            VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt2->execute([$uid, $aanhef, $voornaam, $roepnaam, $tuss1, $tuss2, $achternaam]);
+            (Aanhef, Voornaam, Roepnaam, Tuss1, Tuss2, Achternaam)
+            VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt2->execute([$aanhef, $voornaam, $roepnaam, $tuss1, $tuss2, $achternaam]);
+
+        // Get the newly inserted PersoonID
+        $persoonID = $pdo->lastInsertId();
+
+        // Link person to the trip in Persoon_reizen
+        $stmt3 = $pdo->prepare("INSERT INTO Persoon_reizen (PersoonID, UID) VALUES (?, ?)");
+        $stmt3->execute([$persoonID, $uid]);
 
         $pdo->commit();
         echo "New file created successfully with UID: $uid";
@@ -58,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "Error: " . $e->getMessage();
     }
     exit;
+
 }
 ?>
 
