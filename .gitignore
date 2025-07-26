@@ -1,0 +1,27 @@
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+
+# Ignore environment files (sensitive config)
+.env
+*.env
+
+# Ignore PHP composer dependencies (if used)
+vendor/
+
+# Ignore database export files
+*.sql
+*.sqlite
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore OS generated files
+ehthumbs.db
+Icon?
+
+# Ignore node_modules (if used for frontend tooling)
+node_modules/
