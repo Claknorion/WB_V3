@@ -1,8 +1,16 @@
 <?php
-require_once 'db.php'; // adjust this to your actual DB connection file
-$pdo = connectDB();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Start output buffering to prevent stray output
+ob_start();
 
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *'); // if needed for CORS
+
+require_once 'db.php'; // adjust path if needed
+$pdo = connectDB();
 
 $stad = isset($_GET['stad']) ? trim($_GET['stad']) : '';
 $query = isset($_GET['query']) ? trim($_GET['query']) : '';
@@ -13,8 +21,11 @@ try {
             pa.Code,
             pa.Product,
             pa.Locatie_stad,
+            pa.Locatie_straat,
             pa.Locatie_land,
             pa.Beschrijving_kort,
+            pa.Beschrijving_lang,
+            pa.Inbounder,
             pi.Currency,
             MIN(p.Gross) AS Gross,
             MIN(p.Nett) AS Nett,
@@ -42,15 +53,15 @@ try {
     if ($query !== '') {
         $stmt->bindValue(':query', "%$query%");
     }
-    
+
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $response = [];
 
     foreach ($results as $row) {
-        // Currency logic
-        $currency = 'EUR'; // default
+        // Determine currency
+        $currency = 'EUR'; // default fallback
         if (!empty($row['Currency'])) {
             if (strtolower($row['Currency']) === 'country') {
                 $land = strtolower($row['Locatie_land']);
@@ -58,15 +69,13 @@ try {
                     $currency = 'AUD';
                 } elseif (strpos($land, 'nieuw') !== false || strpos($land, 'new zealand') !== false) {
                     $currency = 'NZD';
-                } else {
-                    $currency = 'EUR'; // unknown fallback
                 }
             } else {
                 $currency = strtoupper($row['Currency']);
             }
         }
 
-        // Format gross/nett prices or fallback message
+        // Format prices
         $formattedGross = is_numeric($row['Gross']) ? number_format((float)$row['Gross'], 2, ',', '.') : null;
         $formattedNett = is_numeric($row['Nett']) ? number_format((float)$row['Nett'], 2, ',', '.') : null;
 
@@ -76,7 +85,10 @@ try {
             'Code' => $row['Code'],
             'Product' => $row['Product'],
             'Locatie_stad' => $row['Locatie_stad'],
+            'Locatie_straat' => $row['Locatie_straat'],
             'Beschrijving_kort' => $row['Beschrijving_kort'],
+            'Beschrijving_lang' => $row['Beschrijving_lang'],
+            'Inbounder' => $row['Inbounder'],
             'Prijs_vanaf' => $prijsVanaf,
             'Gross' => $formattedGross,
             'Nett' => $formattedNett,
@@ -87,10 +99,17 @@ try {
         ];
     }
 
-    file_put_contents('log.json', json_encode($results, JSON_PRETTY_PRINT));
+    // Optional logging for debugging - comment out if not needed
+    // file_put_contents('log.json', json_encode($results, JSON_PRETTY_PRINT));
 
+    // Clear buffer and output JSON
+    ob_clean();
     echo json_encode($response);
+    exit;
 
 } catch (Exception $e) {
+    http_response_code(500);
+    ob_clean();
     echo json_encode(['error' => $e->getMessage()]);
+    exit;
 }

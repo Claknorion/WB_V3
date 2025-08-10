@@ -1,6 +1,277 @@
+.floating-add-btn {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 1000;
+  background-color: #70a75f;
+  /* soft green, matches save-btn */
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 16px 32px;
+  font-size: 20px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  display: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.floating-add-btn.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Floating delete button - matches the add button style */
+.floating-delete-btn {
+  position: fixed;
+  right: 32px; /* Far right corner */
+  bottom: 32px; /* Same bottom position as add button */
+  z-index: 1000;
+  background-color: #dc3545;
+  /* Red color for delete */
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 16px 32px;
+  font-size: 20px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  display: block;
+  opacity: 1;
+  width: auto;
+  min-width: 120px;
+  transition: opacity 0.3s, transform 0.3s, background-color 0.3s;
+}
+
+.floating-delete-btn:hover {
+  background-color: #c82333; /* Darker red on hover */
+}
+#product-options-form fieldset legend {
+  display: none;
+}
+#product-checklist li:first-child {
+  margin-top: 18px;
+}
+#product-checklist {
+  margin-top: 18px;
+}
+/* Remove border from fieldset in product options form */
+#product-options-form fieldset {
+  border: none !important;
+}
+
+/* Action buttons styling */
+#actionButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.delete-btn {
+  background-color: #dc3545 !important; /* Red */
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover {
+  background-color: #c82333 !important; /* Darker red on hover */
+}
+
+/* Update button styling when in edit mode */
+#add-selection-btn[data-mode="update"] {
+  background-color: #ff8c00 !important; /* Orange */
+  color: white !important;
+  transition: background-color 0.3s ease;
+}
+
+#add-selection-btn[data-mode="update"]:hover {
+  background-color: #e67e00 !important; /* Darker orange on hover */
+}
+
+/* Edit mode indicator for sidebar items */
+.item.editing {
+  border-left: 4px solid #ff8c00 !important; /* Orange left border */
+  background-color: rgba(255, 140, 0, 0.1) !important; /* Light orange background */
+}
+
+.item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+#product-extras-list {
+  margin: 10px 0 0 0;
+  padding-left: 0;
+  display: block;
+}
+
+#product-extras-list div {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+#product-extras-list input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: #007BFF;
+}
+
+#product-extras-list label {
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+}
+/* Restore product options flex layout for room cards */
+.product-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Restore main image box style */
+.product-main-image {
+  width: 100%;
+  height: 250px;
+  background-color: #ddd;
+  background-position: center;
+  background-size: cover;
+  cursor: pointer;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* Restore product info panel layout */
+.product-info-panel {
+  flex-grow: 1;
+  font-size: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  padding: 10px;
+  text-align: left;
+  box-sizing: border-box;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 10px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 1.0s ease, transform 1.0s ease;
+  visibility: hidden;
+  pointer-events: none;
+}
+.product-info-panel.visible {
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Room card styles */
+.room-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: #fff;
+  transition: box-shadow 0.3s, border 0.3s;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  box-sizing: border-box;
+}
+.room-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border-color: #007bff;
+}
+.room-card.selected {
+  border-color: #28a745;
+  box-shadow: 0 0 5px #28a745;
+}
+.room-card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.room-card .room-name {
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  word-break: break-word;
+  display: -webkit-box;
+/*   -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; */
+  overflow: hidden;
+}
+.room-card .room-price {
+  font-size: 14px;
+  color: #555;
+  margin-top: auto;
+}
+
+/* Description panels */
+#product-description {
+  background-color: #f9f9f9;
+  border-left: 4px solid #007BFF;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #444;
+  margin-bottom: 20px;
+}
+#product-description .description-title {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #007BFF;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+#product-description p#product-description-content {
+font-size: 20px;
+font-weight: 500; /* medium */
+line-height: 1.6;
+color: #444;
+margin: 0 0 8px 0;
+margin-bottom: 14px;
+font-family: inherit;
+}
+#room-description-box {
+  margin-top: 2rem;
+  padding: 1rem 1.5rem;
+  background-color: #f9f9f9;
+  border-left: 4px solid #007BFF;
+  border-radius: 8px;
+}
+#room-description-box h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #007BFF;
+}
+#room-description-box p {
+  margin: 0;
+  line-height: 1.5;
+  color: #444;
+}
 .creator-wrapper {
   position: absolute;
-  top: 60px; /* Below fixed header */
+  top: 60px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -16,12 +287,14 @@
   padding: 0;
 }
 
+/* Sidebar fixed width */
 .sidebar {
   width: 350px;
   background-color: #1e3a5f;
   color: white;
   padding: 0 10px;
   overflow-y: auto;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .sidebar h2 {
@@ -38,55 +311,187 @@
   padding: 10px;
   border-radius: 8px;
   cursor: pointer;
+  color: #fff; /* Ensure text is visible on dark background */
 }
 
-.item:last-child {
-  background: #244870;
-  text-align: center;
-  font-size: 24px;
-  color: #fff;
+/* Trip item content styling */
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
+.item-title {
+  margin: 4px 0;
+  text-align: left;
+  font-weight: 500;
+}
+
+.item-price {
+  font-size: 0.9em;
+  color: #ccc; /* Lighter color for better contrast on dark background */
+}
+
+/* Container for editor + results + save */
+.trip-editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* height: 100%; */
+  width: 500px;
+  max-width: 500px;
+  min-width: 500px;
+  margin-left: 0; /* Center the editor container horizontally if there's extra space */
+  margin-right: auto;
+  flex-shrink: 0;
+}
+
+/* Editor panel fills full width of trip-editor-container */
 .editor-panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding-bottom: 60px; /* Space for button at bottom */
-  flex-grow: 1;
+  height: auto;
+  flex-grow: 0;
   background: #a19090;
-  max-width: 600px;
-  min-width: 400px;
-  width: 50%;
+  min-height: unset;
+  width: 500px;
+  max-width: 500px;
+  min-width: 500px;
+  margin: 0 auto; /* center horizontally */
   padding: 30px;
-  overflow-y: auto;
+
+  max-height: none;
+  overflow: visible;
+  /* overflow-y: auto; */
+  box-sizing: border-box;
+  transition: width 0.3s ease;
 }
 
 .editor-header {
   font-size: 22px;
   margin-bottom: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: font-size 0.3s ease, margin-bottom 0.3s ease;
 }
 
+.editor-panel.collapsed .editor-header {
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+.collapse-indicator {
+  font-size: 24px;
+  font-weight: bold;
+  transition: transform 0.3s ease, font-size 0.3s ease;
+}
+
+.editor-panel.collapsed .collapse-indicator {
+  transform: rotate(180deg);
+  font-size: 18px;
+}
+
+.editor-content {
+  transition: all 0.3s ease;
+}
+
+.editor-panel.collapsed .editor-content {
+  display: none;
+}
+
+.editor-panel.collapsed {
+  max-height: 28px;
+  overflow: hidden;
+  padding: 5px 30px;
+  transition: height 0.3s ease;
+}
+
+.editor-panel .toggle-button {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #244870;
+  color: #fff;
+  padding: 5px 10px;
+  font-size: 14px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: left;
+  margin: 0; /* remove any top/bottom margin */
+}
+
+
+.editor-panel.collapsed .toggle-button::after {
+  max-height: 40px; /* Enough for button */
+  overflow: hidden;
+  padding: 5px 30px;
+  position: relative;
+  content: "▶ Invoer tonen";
+}
+
+.editor-panel:not(.collapsed) .toggle-button::after {
+  content: "▼ Invoer verbergen";
+}
+
+
 .input-panel {
+  /* Only take as much height as needed by visible inputs */
   display: flex;
   flex-direction: column;
-  height: 100%;
-  position: relative;
-  padding-bottom: 60px; /* Space for button at bottom */
+  gap: 15px;
 }
 
 .editor-panel > *:not(.action-buttons):last-child {
   margin-bottom: 0 !important;
 }
 
-
 .action-buttons {
-  position: absolute;
+  /* position: absolute; */
   bottom: 0;
   left: 0;
   width: 100%;
   display: flex;
   /* border-top: 1px solid #ccc; */
+}
+
+.save-panel {
+  padding: 0; /* remove inner padding to allow full size button */
+  background-color: #f8f8f8;
+  border-top: 1px solid #ccc;
+  display: flex;
+  width: 100%;
+  height: 60px; /* fixed height, adjust if needed */
+  box-sizing: border-box;
+}
+
+.save-button {
+  flex: 1 1 100%;
+  background-color: grey; /* default disabled color */
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: not-allowed;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.save-button.enabled {
+  background-color: #007f5f; /* green */
+  cursor: pointer;
+}
+
+.save-button:disabled {
+  background-color: grey;
+  cursor: not-allowed;
 }
 
 .save-btn, .delete-btn {
@@ -110,7 +515,7 @@
 
 .field {
   margin-bottom: 15px;
-  padding-right: 10%;
+  padding-right: 0;
 }
 
 .field label {
@@ -145,22 +550,40 @@
 }
 
 .hotel-results-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
   flex-grow: 1;
+  max-width: 600px;
+  min-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-x: hidden;
   overflow-y: auto;
+  padding: 0 15px;
+  margin-top: 5px;
+  margin-bottom: 10px;
 }
 
+
 .hotel-card {
-  display: flex;
-  background-color: #f8f8f8;
-  border-radius: 8px;
-  padding: 10px;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s, border 0.3s;
+}
+
+.hotel-card:hover {
+    background-color: #f0f8ff;
+    border-color: #007bff;
+}
+
+.hotel-card.selected {
+    background-color: #d0ebff;
+    border-color: #0056b3;
 }
 
 .hotel-card img {
@@ -168,10 +591,12 @@
   height: 60px;
   object-fit: cover;
   border-radius: 4px;
+  flex-shrink: 0; /* Prevent image from shrinking */
 }
 
 .hotel-info {
   flex-grow: 1;
+  margin-left: 10px;
 }
 
 .hotel-info h4 {
@@ -240,4 +665,72 @@
 
 .type-fields .field {
   margin-bottom: 15px;
+}
+
+/* Quantity input for extras: narrow, no border, center text */
+.extra-qty-input {
+  width: 28px;
+  min-width: 28px;
+  max-width: 32px;
+  margin: 0 4px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1.1em;
+  outline: none;
+}
+/* Plus/minus buttons: wider, transparent background, larger font */
+.extra-minus-btn, .extra-plus-btn {
+  width: 48px;
+  min-width: 40px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(200,200,200,0.2);
+  color: #333;
+  font-size: 1.5em;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: background 0.2s;
+}
+.extra-minus-btn:hover, .extra-plus-btn:hover {
+  background: rgba(40, 167, 69, 0.15);
+}
+
+/* ========== PICTURE SLIDER INTEGRATION ========== */
+
+/* Room picture section styling */
+.room-picture-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.room-picture-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Override picture slider height for room section */
+.room-picture-section .picture-slider-container {
+  height: 300px;
+}
+
+/* Ensure product main slider has proper sizing */
+.product-main-image .picture-slider-container {
+  height: 400px;
+  margin-bottom: 20px;
+}
+
+/* Responsive adjustments for picture sliders */
+@media (max-width: 768px) {
+  .product-main-image .picture-slider-container {
+    height: 250px;
+  }
+  
+  .room-picture-section .picture-slider-container {
+    height: 200px;
+  }
 }

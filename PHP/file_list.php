@@ -64,6 +64,11 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <td><?= htmlspecialchars($file['Datum_start']) ?></td>
                 <td><?= htmlspecialchars($file['Bestemming']) ?></td>
                 <td><?= htmlspecialchars($file['Status']) ?></td>
+                <td>
+                  <a href="../HTML/trip_create.html?uid=<?= urlencode($file['UID']) ?>&zoeknaam=<?= urlencode($file['Zoeknaam']) ?>">
+                    Reis bewerken
+                  </a>
+                </td>
                 <?php if ($userRole === 'admin' || $userRole === 'employee'): ?>
                     <td><a href="file_edit.php?uid=<?= urlencode($file['UID']) ?>">Edit</a></td>
                 <?php endif; ?>

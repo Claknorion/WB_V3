@@ -6,6 +6,8 @@
   <title>Trip Creator</title>
   <link rel="stylesheet" href="../CSS/styles.css" />
   <link rel="stylesheet" href="../CSS/trip_create.css" />
+  <link rel="stylesheet" href="../CSS/picture-slider.css" />
+  <link rel="stylesheet" href="../CSS/picture-modal.css" />
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -26,133 +28,159 @@
       <div class="item" onclick="openEditor()">+</div>
     </div>
 
-    <div class="editor-panel">
-      <div class="editor-header section-title">Item Editor</div>
+    <div class="trip-editor-container">
+      <div class="editor-panel">
+        <div class="editor-header section-title" onclick="toggleEditorPanel()">
+          Item Editor 
+          <span id="collapse-indicator" class="collapse-indicator">−</span>
+        </div>
+        <div id="editor-content" class="editor-content">
 
-      <!-- Date and Time Row -->
-      <div class="field inline">
-        <div class="field-left">
-          <label for="date">Date</label>
-          <input type="date" id="date" required />
-        </div>
-        <div class="field-right">
-          <label for="time">Time</label>
-          <input type="time" id="time" />
-        </div>
-      </div>
-
-
-      <!-- Type Selector -->
-      <div class="field">
-        <label for="mainType">Type</label>
-        <select id="mainType" onchange="handleTypeChange()">
-          <option value="">-- Selecteer type --</option>
-          <option value="vlucht">Vluchten</option>
-          <option value="accommodatie">Accommodatie</option>
-          <option value="vervoer">Vervoer</option>
-          <option value="excursie">Excursies</option>
-          <option value="route">Route / Locatie informatie</option>
-          <option value="notitie">Notitie pagina</option>
-        </select>
-      </div>
-
-      <!-- Dynamic fields for Accommodatie -->
-      <!--       <div id="accommodatieFields" style="display:none;">
-        <div class="field">
-          <label for="hotelName">Hotelnaam</label>
-          <input type="text" id="hotelName" placeholder="Bijv. Four Seasons Sydney" />
-        </div>
-        <div class="field">
-          <label for="hotelAddress">Adres</label>
-          <input type="text" id="hotelAddress" placeholder="Straat + Plaats" />
-        </div>
-        <div class="field">
-          <label for="nights">Aantal nachten</label>
-          <input type="number" id="nights" min="1" placeholder="Bijv. 2" />
-        </div>
-      </div> -->
-
-      <!-- Dynamic fields for Vlucht -->
-      <div id="vluchtFields" style="display:none;">
-        <div class="field">
-          <label for="vluchtVan">Van</label>
-          <input type="text" id="vluchtVan" placeholder="Bijv. Amsterdam (AMS)" />
-        </div>
-        <div class="field">
-          <label for="vluchtNaar">Naar</label>
-          <input type="text" id="vluchtNaar" placeholder="Bijv. Sydney (SYD)" />
-        </div>
-        <div class="field">
-          <label for="maatschappij">Maatschappij</label>
-          <input type="text" id="maatschappij" placeholder="Bijv. Singapore Airlines" />
-        </div>
-      </div>
-
-      <!-- Dynamic fields for Accommodatie -->
-        <!--       <div id="accommodatieFields" style="display:none;">
+        <!-- Date and Time Row -->
         <div class="field inline">
           <div class="field-left">
-            <label for="searchCity">Stad</label>
-            <input type="text" id="searchCity" placeholder="Bijv. Sydney" oninput="searchHotels()" />
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
           </div>
           <div class="field-right">
-            <label for="searchNights">Aantal nachten</label>
-            <input type="number" id="searchNights" min="1" placeholder="Bijv. 2" />
+            <label for="time">Time</label>
+            <input type="time" id="time" />
+          </div>
+          <div class="field-right">
+            <label for="pax">Pax</label>
+            <input type="number" id="pax" min="1" value="1" />
           </div>
         </div>
+
+        <!-- Type Selector -->
         <div class="field">
-          <label for="searchName">Zoek hotelnaam</label>
-          <input type="text" id="searchName" placeholder="Bijv. Four Seasons" oninput="filterHotelResults()" />
+          <label for="mainType">Type</label>
+          <select id="mainType" onchange="handleTypeChange()">
+            <option value="">-- Selecteer type --</option>
+            <option value="vlucht">Vluchten</option>
+            <option value="accommodatie">Accommodatie</option>
+            <option value="vervoer">Vervoer</option>
+            <option value="excursie">Excursies</option>
+            <option value="route">Route / Locatie informatie</option>
+            <option value="notitie">Notitie pagina</option>
+          </select>
         </div>
-        <div id="hotelResults" class="hotel-result-container"> -->
-          <!-- Row for city and nights -->
-          <!--           <div class="field-row">
-            <input type="text" id="stad-input" placeholder="Stad" class="field-left" />
-            <input type="number" id="nachten-input" placeholder="Nachten" class="field-right" />
-          </div> -->
 
-          <!-- Search box for filtering hotels by name -->
-          <!--           <div class="field-row">
-            <input type="text" id="hotel-search-input" placeholder="Zoek hotelnaam..." />
-          </div> -->
+        <!-- Dynamic fields for Vlucht -->
+        <div id="vluchtFields" style="display:none;">
+          <div class="field">
+            <label for="vluchtVan">Van</label>
+            <input type="text" id="vluchtVan" placeholder="Bijv. Amsterdam (AMS)" />
+          </div>
+          <div class="field">
+            <label for="vluchtNaar">Naar</label>
+            <input type="text" id="vluchtNaar" placeholder="Bijv. Sydney (SYD)" />
+          </div>
+          <div class="field">
+            <label for="maatschappij">Maatschappij</label>
+            <input type="text" id="maatschappij" placeholder="Bijv. Singapore Airlines" />
+          </div>
+        </div>
 
+        <!-- Dynamic fields for Accommodatie -->
+        <div id="accommodatieFields" style="display:none;">
+          <!-- Inline input for Stad and Aantal nachten -->
+          <div class="field inline">
+            <div class="field-left">
+              <label for="searchCity">Stad</label>
+              <input type="text" id="searchCity" placeholder="Bijv. Sydney" oninput="searchHotels()" />
+            </div>
+            <div class="field-right">
+              <label for="searchNights">Aantal nachten</label>
+              <input type="number" id="searchNights" min="1" placeholder="Bijv. 2" />
+            </div>
+          </div>
+
+          <!-- Hotel name filter -->
+          <div class="field">
+            <label for="searchName">Zoek hotelnaam</label>
+            <input type="text" id="searchName" placeholder="Bijv. Four Seasons" oninput="filterHotelResults()" />
+          </div>
+        </div>
+
+        <!-- Dynamic fields for Excursies -->
+        <div id="excursieFields" style="display:none;">
+          <!-- Inline input for Stad and Aantal personen -->
+          <div class="field inline">
+            <div class="field-left">
+              <label for="searchTourCity">Stad</label>
+              <input type="text" id="searchTourCity" placeholder="Bijv. Sydney" oninput="searchTours()" />
+            </div>
+            <div class="field-right">
+              <label for="searchTourPax">Aantal personen</label>
+              <input type="number" id="searchTourPax" min="1" placeholder="Bijv. 2" value="1" />
+            </div>
+          </div>
+
+          <!-- Tour name filter -->
+          <div class="field">
+            <label for="searchTourName">Zoek excursie naam</label>
+            <input type="text" id="searchTourName" placeholder="Bijv. City Tour" oninput="filterTourResults()" />
+          </div>
+        </div>
+        </div> <!-- end editor-content -->
+      </div>
+
+      <div class="hotel-results-container">
+        <!-- Hotel cards appear here -->
           <!-- Container for hotel results -->
-          <!--           <div id="hotel-results" class="hotel-results-container"></div>
-        </div>        
-      </div> -->
-
-      <!-- Dynamic fields for Accommodatie -->
-      <div id="accommodatieFields" style="display:none;">
-        <!-- Inline input for Stad and Aantal nachten -->
-        <div class="field inline">
-          <div class="field-left">
-            <label for="searchCity">Stad</label>
-            <input type="text" id="searchCity" placeholder="Bijv. Sydney" oninput="searchHotels()" />
-          </div>
-          <div class="field-right">
-            <label for="searchNights">Aantal nachten</label>
-            <input type="number" id="searchNights" min="1" placeholder="Bijv. 2" />
-          </div>
-        </div>
-
-        <!-- Hotel name filter -->
-        <div class="field">
-          <label for="searchName">Zoek hotelnaam</label>
-          <input type="text" id="searchName" placeholder="Bijv. Four Seasons" oninput="filterHotelResults()" />
-        </div>
-
-        <!-- Container for hotel results -->
         <div id="hotel-results" class="hotel-results-container"></div>
       </div>
-
-
-
-      <!-- <button class="btn" onclick="saveItem()">Save Item</button> -->
-      <div id="actionButtons" class="action-buttons">
-        <button id="saveItemBtn" class="save-btn">Save</button>
-        <!-- Delete button will be added dynamically when needed -->
-      </div>
     </div>
+
+    <div id="product-info-panel" class="product-info-panel">
+      <h2 class="section-title">Product informatie</h2>
+
+      <!-- Main picture slider -->
+      <div id="product-main-slider" class="product-main-image">
+        <!-- Picture slider will be initialized here -->
+      </div>
+
+      <!-- Description -->
+      <div id="product-description" class="product-description">
+        <h3 class="description-title">Hotelbeschrijving</h3>
+        <!-- Static elements for included/excluded -->
+        <p id="product-description-content"></p>
+        <ul id="product-checklist"></ul>
+
+        <!-- Optional extras with checkbox inputs -->
+        <form id="product-options-form">
+          <fieldset>
+            <legend>Optionele extra’s</legend>
+            <div id="product-extras-list"></div>
+          </fieldset>
+        </form>
+      </div>
+
+
+      <!-- Options container -->
+      <div id="product-options" class="product-options">
+        <!-- Room type cards inserted by JS -->
+      </div>
+      <div id="room-description-box">
+        <h3>Kamerbeschrijving</h3>
+        <p id="room-description-content"></p>
+        <ul id="room-checklist"></ul>
+        
+        <!-- Room picture slider -->
+        <div id="room-picture-slider" class="room-picture-section" style="display:none;">
+          <h4>Kamer foto's</h4>
+          <div id="room-main-slider">
+            <!-- Room-specific picture slider will be initialized here -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <button id="add-selection-btn" class="floating-add-btn" style="display:none;">
+      Add: <span id="add-total-price">0.00</span>
+    </button>
   </div>
 
   <!-- Modal -->
@@ -165,6 +193,45 @@
   </div>
 
   <!-- Scripts -->
-  <script src="../JS/trip_create.js"></script>
+  <script>
+// Helper to get URL parameters
+function getQueryParam(name) {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
+}
+
+window.currentUID = getQueryParam('uid') || '';
+window.currentZoeknaam = getQueryParam('zoeknaam') || '';
+window.currentPax = getQueryParam('pax') || '';
+
+// Optionally display Zoeknaam and Pax in the editor panel
+window.addEventListener('DOMContentLoaded', function() {
+  const editorHeader = document.querySelector('.editor-header');
+  if (window.currentZoeknaam) {
+    const zoekDiv = document.createElement('div');
+    zoekDiv.style.fontSize = '16px';
+    zoekDiv.style.marginBottom = '8px';
+    zoekDiv.textContent = 'Zoeknaam: ' + window.currentZoeknaam;
+    editorHeader.appendChild(zoekDiv);
+  }
+  if (window.currentPax) {
+    const paxInput = document.getElementById('pax');
+    if (paxInput) paxInput.value = window.currentPax;
+  }
+});
+</script>
+
+<!-- Include Three.js and 360° viewers -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.130.1/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/panolens@0.12.1/build/panolens.min.js"></script>
+<script src="../JS/new-360-viewer.js"></script>
+
+<!-- Picture Slider Component -->
+<script src="../JS/picture-slider.js"></script>
+
+<!-- Modular Trip Creator Scripts - Load in order -->
+<script src="../JS/trip_database.js"></script>
+<script src="../JS/hotel_manager.js"></script>
+<script src="../JS/trip_create_core.js"></script>
 </body>
 </html>
