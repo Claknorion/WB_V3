@@ -32,3 +32,12 @@ XLS/
 *.xlsx
 *.xlsm
 *.csv
+
+# Ignore Pictures folder (large test files, not needed for code)
+Pictures/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
