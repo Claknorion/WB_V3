@@ -274,7 +274,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="action-bar">
-            <a href="dashboard.php" class="btn btn-back">← Back to Dashboard</a>
+            <a href="../dashboard.php" class="btn btn-back">← Back to Dashboard</a>
             <div class="search-container">
                 <input type="text" id="userSearch" placeholder="🔍 Search users..." class="search-input">
             </div>

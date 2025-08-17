@@ -1,7 +1,7 @@
 <?php
 // get_trip_items.php - Fetch trip items ordered by sequence
 header('Content-Type: application/json');
-require_once 'db.php';
+require_once '../db.php';
 
 $uid = $_GET['uid'] ?? '';
 

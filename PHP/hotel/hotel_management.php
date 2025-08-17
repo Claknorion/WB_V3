@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
@@ -11,8 +11,8 @@ if (!in_array($role, ['employee', 'admin'])) {
     die("Access denied. Insufficient permissions.");
 }
 
-include 'db.php';
-include 'rich-text-helpers.php';
+include '../db.php';
+include '../utils/rich-text-helpers.php';
 
 // Fetch dropdown options
 $serviceOptions = [];
@@ -170,7 +170,7 @@ if (isset($_GET['edit'])) {
         <h1>Hotel Management</h1>
         
         <nav style="margin-bottom: 20px;">
-            <a href="dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
+            <a href="../dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
             <a href="tour_management.php" class="btn btn-secondary">Tour Management</a>
         </nav>
         

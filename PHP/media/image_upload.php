@@ -16,7 +16,7 @@ if (!in_array($role, ['employee', 'admin'])) {
 
 header('Content-Type: application/json');
 
-include 'db.php';
+include '../db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

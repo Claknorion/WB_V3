@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
@@ -11,8 +11,8 @@ if (!in_array($role, ['employee', 'admin'])) {
     die("Access denied. Insufficient permissions.");
 }
 
-include 'db.php';
-include 'rich-text-helpers.php';
+include '../db.php';
+include '../utils/rich-text-helpers.php';
 
 // Handle form submissions
 $message = '';
@@ -131,7 +131,7 @@ try {
 </head>
 <body>
     <div class="management-container">
-        <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
+        <a href="../dashboard.php" class="back-link">← Back to Dashboard</a>
         
         <div class="page-header">
             <h1>🎯 Tour Management</h1>

@@ -1,7 +1,7 @@
 <?php
 // get_trip_details.php - Get detailed trip info including extras breakdown
 header('Content-Type: application/json');
-require_once 'db.php';
+require_once '../db.php';
 
 $uid = $_GET['uid'] ?? '';
 

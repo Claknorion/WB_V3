@@ -12,7 +12,7 @@ if (empty($uid)) {
 
 try {
     // Include database connection
-    require_once 'db.php';
+    require_once '../db.php';
     $pdo = connectDB();
     
     // Query File_info table for this UID

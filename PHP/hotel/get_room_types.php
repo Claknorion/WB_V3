@@ -7,7 +7,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 require_once '../db.php';
-require_once '../PHP/rich-text-helpers.php';
+require_once '../utils/rich-text-helpers.php';
 $pdo = connectDB();
 
 $code = $_GET['code'] ?? '';

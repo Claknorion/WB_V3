@@ -5,7 +5,7 @@ $pdo = connectDB();
 
 // Check login and role
 if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 $userRole = $_SESSION['user']['Role'] ?? 'customer';

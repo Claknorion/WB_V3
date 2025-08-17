@@ -9,7 +9,7 @@ if (!isset($_SESSION['user'])) {
 
 header('Content-Type: application/json');
 
-include 'db.php';
+include '../db.php';
 
 $code = $_GET['code'] ?? '';
 

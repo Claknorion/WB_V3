@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // if needed for CORS
 
 require_once '../db.php';
-require_once 'rich-text-helpers.php'; // For rich text processing
+require_once '../utils/rich-text-helpers.php'; // For rich text processing
 $pdo = connectDB();
 
 $stad = isset($_GET['stad']) ? trim($_GET['stad']) : '';

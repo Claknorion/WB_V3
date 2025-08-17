@@ -291,7 +291,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
 
                 <div class="button-group">
-                    <a href="dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
+                    <a href="../dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
                     <button type="submit" class="btn">✅ Create User</button>
                 </div>
             </form>
