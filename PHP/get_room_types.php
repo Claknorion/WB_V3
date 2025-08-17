@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 require_once '../PHP/db.php';
+require_once '../PHP/rich-text-helpers.php';
 $pdo = connectDB();
 
 $code = $_GET['code'] ?? '';
@@ -17,8 +18,8 @@ if (!$code) {
 }
 
 try {
-    // Fetch room types for the hotel
-    $stmtRooms = $pdo->prepare("SELECT ID, Productnaam, Beschrijving_lang, Keuken, Bedden, Ensuite, Gross, Nett FROM Product_accommodatie_product WHERE Code = ?");
+    // Fetch room types for the hotel (only active rooms)
+    $stmtRooms = $pdo->prepare("SELECT ID, Productnaam, Beschrijving_lang, Keuken, Bedden, Ensuite, Gross, Nett, Service, Active FROM Product_accommodatie_product WHERE Code = ? AND Active = 1");
     $stmtRooms->execute([$code]);
     $rooms = $stmtRooms->fetchAll(PDO::FETCH_ASSOC);
 
@@ -51,12 +52,14 @@ try {
             $roomData[] = [
                 'ID' => $id,
                 'Productnaam' => $room['Productnaam'],
-                'Beschrijving_lang' => $room['Beschrijving_lang'],
+                'Beschrijving_lang' => displayRichText($room['Beschrijving_lang']),
                 'Keuken' => $room['Keuken'],
                 'Bedden' => $room['Bedden'],
                 'Ensuite' => $room['Ensuite'],
                 'Gross' => floatval($room['Gross']),
                 'Nett' => floatval($room['Nett']),
+                'Service' => $room['Service'],
+                'Active' => intval($room['Active']),
                 'Images' => $mediaByCode[$id] ?? []
             ];
         }

@@ -59,8 +59,8 @@ function loadSidebarFromDatabase() {
                             endDate: dbItem.Datum_einde, // Add end date for smart date calculations
                             time: dbItem.Tijd_aanvang || '',
                             city: dbItem.Locatie_stad || '',
-                            title: dbItem.Supplier_naam || '',
-                            hotelName: dbItem.Supplier_naam || '',
+                            title: dbItem.Product_type === 'tour' ? (dbItem.Supplier_product || '') : (dbItem.Supplier_naam || ''),
+                            hotelName: dbItem.Product_type === 'tour' ? (dbItem.Supplier_product || '') : (dbItem.Supplier_naam || ''),
                             roomName: dbItem.Supplier_product || '',
                             total: mainTotal + extrasTotal, // Show combined total
                             currency: dbItem.Gross_valuta || '',
@@ -161,7 +161,7 @@ function loadItemFromDatabase(reisID) {
                     /[a-z]$/.test(item.ReisID)
                 );
                 
-                console.log('Found main item to edit:', mainItem, 'with extras:', extras);
+                console.log('Found main item to edit:', mainItem.ReisID, 'with', extras.length, 'extras');
                 
                 // Fill form fields with existing data
                 const dateInput = document.getElementById('date');
@@ -187,42 +187,151 @@ function loadItemFromDatabase(reisID) {
                 const nameInput = document.getElementById('searchName');
                 if (nameInput) nameInput.value = mainItem.Supplier_naam || '';
                 
-                // Set main type to accommodatie and show the fields
+                // Set main type based on Product_type and show the appropriate fields
                 const mainTypeSelect = document.getElementById('mainType');
                 if (mainTypeSelect) {
-                    mainTypeSelect.value = 'accommodatie';
-                    if (typeof handleTypeChange === 'function') {
-                        handleTypeChange(); // This will show the accommodation fields
-                    }
-                }
-                
-                // Search for the hotel to load it in the interface
-                if (mainItem.Supplier_naam || mainItem.Locatie_stad) {
-                    if (typeof searchHotels === 'function') {
-                        searchHotels();
-                    }
-                    
-                    // Wait a moment for hotels to load, then auto-select
-                    setTimeout(() => {
-                        if (typeof allHotels !== 'undefined') {
-                            const hotel = allHotels.find(h => 
-                                h.Product === mainItem.Supplier_naam || 
-                                h.Code === mainItem.Product_code
-                            );
-                            
-                            if (hotel && typeof selectHotel === 'function') {
-                                console.log('Found matching hotel:', hotel);
-                                selectHotel(hotel.Code, parseInt(nightsInput.value) || 1, hotel.Currency);
-                                
-                                // Wait for room types to load, then auto-select room
-                                setTimeout(() => {
-                                    if (typeof autoSelectRoomAndExtras === 'function') {
-                                        autoSelectRoomAndExtras(mainItem, extras);
-                                    }
-                                }, 500);
-                            }
+                    if (mainItem.Product_type === 'tour') {
+                        mainTypeSelect.value = 'excursie';
+                        if (typeof handleTypeChange === 'function') {
+                            handleTypeChange(); // This will show the tour fields
                         }
-                    }, 500);
+                        
+                        // For tours, search and select the tour
+                        const tourNameInput = document.getElementById('tourName');
+                        if (tourNameInput) tourNameInput.value = mainItem.Supplier_product || '';
+                        
+                        // Search for tours if we have location data
+                        if (mainItem.Locatie_stad) {
+                            // Fill in the search city field
+                            const searchCityInput = document.getElementById('searchTourCity');
+                            if (searchCityInput) {
+                                searchCityInput.value = mainItem.Locatie_stad;
+                            }
+                            
+                            setTimeout(() => {
+                                if (typeof searchTours === 'function') {
+                                    console.log('Starting tour search for editing...');
+                                    searchTours().then(tours => {
+                                        console.log('Tour search completed, found tours:', tours);
+                                        
+                                        // Auto-select the tour after search
+                                        setTimeout(() => {
+                                            console.log('Auto-selecting tour with Product_code:', mainItem.Product_code);
+                                            
+                                            if (tours && tours.length > 0) {
+                                                const matchingTour = tours.find(tour => 
+                                                    tour.Code === mainItem.Product_code || tour.tourID === mainItem.Product_code
+                                                );
+                                                
+                                                console.log('Found matching tour:', matchingTour);
+                                                
+                                                if (matchingTour) {
+                                                    // Find the corresponding card
+                                                    const tourCards = document.querySelectorAll('.tour-card');
+                                                    
+                                                    let matchingCard = null;
+                                                    tourCards.forEach((card, index) => {
+                                                        const tourCode = card.getAttribute('data-tour-code');
+                                                        const tourId = card.getAttribute('data-tour-id');
+                                                        
+                                                        // Prioritize exact tourID match first, then fallback to Code match
+                                                        if (!matchingCard) {
+                                                            if (tourId === matchingTour.tourID) {
+                                                                matchingCard = card;
+                                                            } else if (tourCode === matchingTour.Code) {
+                                                                matchingCard = card;
+                                                            }
+                                                        }
+                                                    });
+                                                    
+                                                    if (matchingCard && typeof selectTour === 'function') {
+                                                        console.log('Auto-selecting tour for editing:', matchingTour);
+                                                        selectTour(matchingTour, matchingCard);
+                                                        
+                                                        // Load tour extras and time selection after selection
+                                                        setTimeout(() => {
+                                                            loadTourExtrasForEditing(mainItem, extras);
+                                                            
+                                                            // Restore time selection if available
+                                                            console.log('Restoring timeslot for tour:', mainItem.Product_code);
+                                                            
+                                                            // Use Product_code if Product_id is undefined
+                                                            const tourId = mainItem.Product_id || mainItem.Product_code;
+                                                            
+                                                            if (tourId && (mainItem.Service || mainItem.Tijd_aanvang)) {
+                                                                // Create a corrected item with the right tour ID field
+                                                                const itemForRestoration = { ...mainItem, Product_id: tourId };
+                                                                restoreTourTimeSelection(itemForRestoration);
+                                                            } else {
+                                                                console.log('No tour ID or timeslot data to restore');
+                                                            }
+                                                        }, 1000);
+                                                    } else {
+                                                        console.error('Could not find matching tour card or selectTour function');
+                                                    }
+                                                } else {
+                                                    console.error('No matching tour found in search results');
+                                                }
+                                            } else {
+                                                console.error('No tours returned from search');
+                                            }
+                                        }, 500);
+                                    }).catch(error => {
+                                        console.error('Tour search failed:', error);
+                                    });
+                                } else {
+                                    console.error('searchTours function not available');
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        // Handle accommodations (existing logic)
+                        mainTypeSelect.value = 'accommodatie';
+                        if (typeof handleTypeChange === 'function') {
+                            handleTypeChange(); // This will show the accommodation fields
+                        }
+                        
+                        // Search for the hotel to load it in the interface
+                        if (mainItem.Supplier_naam || mainItem.Locatie_stad) {
+                            if (typeof searchHotels === 'function') {
+                                console.log('Starting hotel search for editing...');
+                                searchHotels();
+                            }
+                            
+                            // Wait for hotels to load, then auto-select
+                            setTimeout(() => {
+                                console.log('Attempting to find hotel for editing...', mainItem.Supplier_naam);
+                                if (typeof allHotels !== 'undefined') {
+                                    const hotel = allHotels.find(h => 
+                                        h.Product === mainItem.Supplier_naam || 
+                                        h.Code === mainItem.Product_code
+                                    );
+                                    
+                                    if (hotel && typeof selectHotel === 'function') {
+                                        console.log('Found matching hotel for editing, calling selectHotel:', hotel);
+                                        selectHotel(hotel.Code, parseInt(nightsInput.value) || 1, hotel.Currency);
+                                        
+                                        // Wait for room types to load, then auto-select room
+                                        setTimeout(() => {
+                                            if (typeof autoSelectRoomAndExtras === 'function') {
+                                                autoSelectRoomAndExtras(mainItem, extras);
+                                            }
+                                        }, 500);
+                                    } else {
+                                        console.error('Hotel not found or selectHotel function missing:', {
+                                            hotel: hotel,
+                                            selectHotelAvailable: typeof selectHotel === 'function',
+                                            searchedName: mainItem.Supplier_naam,
+                                            searchedCode: mainItem.Product_code,
+                                            availableHotels: allHotels ? allHotels.length : 0
+                                        });
+                                    }
+                                } else {
+                                    console.error('allHotels not available for hotel selection');
+                                }
+                            }, 1000); // Increased timeout to ensure search completes
+                        }
+                    }
                 }
                 
                 // Update buttons for edit mode
@@ -248,6 +357,65 @@ function loadItemFromDatabase(reisID) {
         .catch(error => {
             console.error('Error loading item for editing:', error);
         });
+}
+
+// Load tour extras for editing
+function loadTourExtrasForEditing(mainItem, extras) {
+    console.log('Loading tour extras for editing:', extras);
+    
+    // Set PAX value if available
+    const paxInput = document.getElementById('pax');
+    if (paxInput) {
+        // Estimate PAX from price if tour is per-person
+        // This is approximate since we don't store PAX directly
+        paxInput.value = 1; // Default, user can adjust
+    }
+    
+    // Pre-select extras based on database extras
+    extras.forEach(extra => {
+        // Find matching extra elements by description
+        const extraCheckboxes = document.querySelectorAll('.extra-checkbox');
+        const extraQuantities = document.querySelectorAll('.extra-qty-input');
+        
+        // Try to match by product name
+        const productName = extra.Supplier_product;
+        
+        // Check checkboxes
+        extraCheckboxes.forEach(checkbox => {
+            const extraName = checkbox.getAttribute('data-extra-name');
+            const label = checkbox.nextElementSibling;
+            const labelText = label ? label.textContent : '';
+            
+            if (extraName === productName || labelText.includes(productName)) {
+                checkbox.checked = true;
+                console.log('Pre-selected extra checkbox:', productName);
+            }
+        });
+        
+        // Check quantity inputs
+        extraQuantities.forEach(qtyInput => {
+            const extraName = qtyInput.getAttribute('data-extra-name');
+            const extraDesc = qtyInput.getAttribute('data-description');
+            
+            if (extraName === productName || extraDesc === productName) {
+                // Estimate quantity based on price difference
+                const extraCost = parseFloat(qtyInput.getAttribute('data-cost')) || 0;
+                if (extraCost > 0) {
+                    const quantity = Math.round(extra.Gross / extraCost);
+                    qtyInput.value = quantity > 0 ? quantity : 1;
+                    console.log('Pre-selected extra quantity:', productName, 'qty:', quantity);
+                }
+            }
+        });
+    });
+    
+    // Update pricing display
+    if (typeof updateTourAddButtonValue === 'function') {
+        updateTourAddButtonValue();
+    }
+    
+    // Restore tour time selection if available
+    restoreTourTimeSelection(mainItem);
 }
 
 // Delete item from database
@@ -506,6 +674,67 @@ function getTripStatistics(uid, callback) {
             console.error('Error loading trip statistics:', error);
             if (callback) callback({ success: false, error: error.message });
         });
+}
+
+/**
+ * Restore tour time selection state when editing from sidebar
+ */
+function restoreTourTimeSelection(item) {
+    console.log('Restoring tour time selection for item:', item.ReisID);
+    
+    // Prevent multiple calls for the same item
+    if (window.currentRestoringItem === item.ReisID) {
+        return;
+    }
+    window.currentRestoringItem = item.ReisID;
+    
+    if (!item || item.Product_type !== 'tour') {
+        window.currentRestoringItem = null;
+        return;
+    }
+    
+    if (!window.tourTimeManager) {
+        window.currentRestoringItem = null;
+        return;
+    }
+    
+    // Prepare restoration criteria from stored data
+    const restorationCriteria = {
+        slotName: item.Service ? item.Service.replace(' (Custom Times)', '').trim() : null,  // Clean the slot name
+        startTime: item.Tijd_aanvang || null,
+        endTime: item.Tijd_einde || null
+    };
+    
+    console.log('Restoration criteria (cleaned):', restorationCriteria);
+    
+    // Ensure we have a valid tourID
+    const tourId = item.Product_id || item.Product_code;
+    if (!tourId) {
+        console.log('❌ No valid tour ID found for restoration');
+        window.currentRestoringItem = null;
+        return;
+    }
+    
+    // Initialize the time selection system first
+    if (typeof window.tourTimeManager.initialize === 'function') {
+        console.log('Initializing tour time selection for tourID:', tourId);
+        window.tourTimeManager.initialize(tourId);
+        
+        // Wait a moment for the timeslots to load, then attempt restoration
+        setTimeout(() => {
+            if (typeof window.tourTimeManager.restoreSelection === 'function') {
+                const restored = window.tourTimeManager.restoreSelection(restorationCriteria);
+                if (!restored) {
+                    console.log('Could not restore specific timeslot, may auto-select if only one option');
+                }
+            }
+            
+            // Clear the restoration lock
+            window.currentRestoringItem = null;
+        }, 1000); // Increased timeout to ensure timeslots load
+    } else {
+        window.currentRestoringItem = null;
+    }
 }
 
 console.log("Trip Database - Module loaded");

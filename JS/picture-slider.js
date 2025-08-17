@@ -76,22 +76,16 @@ class PictureSlider {
                 url.searchParams.set('additional_code', additionalCode);
             }
             
-            console.log('Picture slider loading media from URL:', url.toString());
-            console.log('Picture slider codes - Main:', code, 'Additional:', additionalCode);
-            
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
-            console.log('Picture slider received data:', data);
             
             if (data.success && data.media && data.media.length > 0) {
-                console.log('Picture slider setting media:', data.media);
                 this.setMedia(data.media);
             } else {
-                console.log('Picture slider: No media found or error:', data);
                 this.showNoImages();
             }
         } catch (error) {
@@ -202,13 +196,6 @@ class PictureSlider {
         const noteShort = slide.Note_short || '';
         const noteLong = slide.Note_long || '';
         
-        console.log(`Creating slide ${index}:`, { 
-            mediaType, 
-            src, 
-            noteShort,
-            isSlide360: mediaType === '360'
-        });
-        
         let mediaHTML = '';
         let mediaIndicator = '';
         
@@ -310,55 +297,39 @@ class PictureSlider {
     }
     
     init360Viewer() {
-        console.log('init360Viewer called');
         if (!this.slides[this.currentSlide]) {
-            console.log('No current slide available');
             return;
         }
         
         const currentSlide = this.slides[this.currentSlide];
-        console.log('Current slide data:', currentSlide);
-        console.log('Current slide mediatype:', currentSlide.Mediatype);
-        console.log('Is 360 slide?', currentSlide.Mediatype === '360');
         
         if (currentSlide.Mediatype === '360') {
-            console.log('Processing 360° slide...');
             const panoramaContainer = this.container.querySelector('.simple-360-container');
-            console.log('360° container found:', !!panoramaContainer);
             
             if (panoramaContainer) {
                 const src = currentSlide.Location || currentSlide.src;
-                console.log('360° image source:', src);
                 
                 // Clean up existing viewer
                 if (this.new360Viewer) {
-                    console.log('Cleaning up existing 360° viewer');
                     this.new360Viewer.destroy();
                     this.new360Viewer = null;
                 }
                 
                 // Create new 360° viewer
                 if (window.createNew360Viewer) {
-                    console.log('Creating NEW 360° viewer in slider for:', src);
                     try {
                         this.new360Viewer = window.createNew360Viewer(panoramaContainer, src, {
                             autoRotate: false,
                             sensitivity: 1
                         });
-                        console.log('NEW 360° viewer created successfully in slider');
                     } catch (error) {
-                        console.error('NEW 360° viewer creation failed:', error);
+                        console.error('360° viewer creation failed:', error);
                         panoramaContainer.innerHTML = `<img src="${src}" alt="360° Image" style="width: 100%; height: 100%; object-fit: cover;">`;
                     }
                 } else {
-                    console.warn('New360Viewer not loaded, falling back to regular image');
                     panoramaContainer.innerHTML = `<img src="${src}" alt="360° Image" style="width: 100%; height: 100%; object-fit: cover;">`;
                 }
-            } else {
-                console.warn('360° container not found in DOM');
             }
-        } else {
-            console.log('Current slide is not 360°, skipping viewer initialization');
         }
     }
     
@@ -494,14 +465,11 @@ class PictureSlider {
         
         // Clean up 360° viewer
         if (activeSlider.modalNew360Viewer) {
-            console.log('Modal: Cleaning up existing 360° viewer');
             activeSlider.modalNew360Viewer.destroy();
             activeSlider.modalNew360Viewer = null;
         }
         
         let mediaHTML = '';
-        
-        console.log('Modal: Rendering slide with mediaType:', mediaType, 'src:', src);
         
         switch (mediaType) {
             case 'image':
@@ -518,30 +486,22 @@ class PictureSlider {
                 break;
                 
             case '360':
-                console.log('Modal: Creating 360° container HTML');
                 mediaHTML = `<div class="panorama-container simple-360-modal-container" style="width: 100%; height: 100%;"></div>`;
                 break;
         }
         
         modalContent.innerHTML = mediaHTML;
-        console.log('Modal: Content set, mediaType is:', mediaType);
         
         // Initialize 360° viewer for modal
         if (mediaType === '360') {
-            console.log('Modal: Starting 360° initialization...');
-            
             // Try the new 360° viewer first
             const viewerFunction = window.createNew360Viewer || window.createPanorama360Viewer || window.createSimple360Viewer;
             
             if (viewerFunction) {
-                console.log('Modal: 360° viewer function available');
                 setTimeout(() => {
                     const panoramaContainer = modalContent.querySelector('.simple-360-modal-container');
-                    console.log('Modal: Looking for 360° container...', !!panoramaContainer);
                     
                     if (panoramaContainer) {
-                        console.log('Modal: 360° container found, creating viewer...');
-                        
                         // Ensure container has proper full-screen dimensions
                         panoramaContainer.style.width = '100vw';
                         panoramaContainer.style.height = '90vh';
@@ -552,18 +512,15 @@ class PictureSlider {
                         try {
                             // Clean up any existing modal viewer
                             if (activeSlider.modalNew360Viewer) {
-                                console.log('Modal: Cleaning up existing viewer');
                                 activeSlider.modalNew360Viewer.destroy();
                             }
                             
-                            console.log('Modal: Creating 360° viewer with source:', src);
                             activeSlider.modalNew360Viewer = viewerFunction(panoramaContainer, src, {
                                 autoRotate: false,
                                 sensitivity: 0.6,  // Reduced sensitivity for modal
                                 rotateSpeed: 0.3,
                                 fov: 75
                             });
-                            console.log('Modal: 360° viewer created successfully!');
                             
                         } catch (error) {
                             console.error('Modal: 360° viewer initialization failed:', error);
@@ -575,9 +532,6 @@ class PictureSlider {
                                 </div>
                             `;
                         }
-                    } else {
-                        console.error('Modal: 360° container not found in DOM');
-                        console.log('Modal: Available containers:', modalContent.innerHTML);
                     }
                 }, 500);
             } else {
@@ -589,8 +543,6 @@ class PictureSlider {
                     </div>
                 `;
             }
-        } else {
-            console.log('Modal: Not a 360° slide, skipping viewer initialization');
         }
         
         // Update modal counter and indicator

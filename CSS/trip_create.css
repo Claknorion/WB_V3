@@ -48,6 +48,14 @@
 .floating-delete-btn:hover {
   background-color: #c82333; /* Darker red on hover */
 }
+
+/* Tour duration display */
+.tour-duration {
+  color: #666;
+  font-size: 0.9em;
+  margin: 4px 0;
+  font-style: italic;
+}
 #product-options-form fieldset legend {
   display: none;
 }
@@ -733,4 +741,9 @@ font-family: inherit;
   .room-picture-section .picture-slider-container {
     height: 200px;
   }
+}
+
+/* ========== TOUR CARD SPACING ========== */
+.tour-card .hotel-details {
+  margin-left: 10px;
 }

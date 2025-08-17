@@ -3,11 +3,13 @@
 // Global state
 let editingItem = null;
 const tripItems = [];
+let tourPictureSlider = null;
 let currentSelection = {
   hotel: null,
   room: null,
   hotelCode: null,
-  roomType: null
+  roomType: null,
+  tour: null
 };
 
 // Editor panel collapse functionality
@@ -78,6 +80,24 @@ function handleTypeChange() {
         const productPanel = document.getElementById("product-info-panel");
         if (productPanel) {
             productPanel.classList.remove("visible");
+        }
+    }
+    
+    // Clear tour results if switching away from "excursie"
+    if (selected !== "excursie") {
+        if (typeof clearTourResults === 'function') {
+            clearTourResults();
+        }
+        
+        // Clean up tour picture slider if switching away from tours
+        if (typeof tourPictureSlider !== 'undefined' && tourPictureSlider) {
+            tourPictureSlider.destroy();
+            tourPictureSlider = null;
+        }
+        
+        // Clear tour selection
+        if (typeof currentSelection !== 'undefined') {
+            currentSelection.tour = null;
         }
     }
 
@@ -197,29 +217,44 @@ function clearTourSelection() {
 
 // Search tours function
 function searchTours() {
+  console.log('searchTours() called');
   const city = document.getElementById("searchTourCity").value.trim();
   const name = document.getElementById("searchTourName").value.trim();
   
+  console.log('Tour search inputs - City:', city, 'Name:', name);
+  
   if (city.length === 0 && name.length === 0) {
+    console.log('No search terms, clearing results');
     if (typeof clearTourResults === 'function') {
       clearTourResults();
     }
-    return;
+    return Promise.resolve([]);
   }
   
   const params = new URLSearchParams();
   if (city) params.append('stad', city);
   if (name) params.append('query', name);
   
-  fetch(`PHP/search_tours.php?${params.toString()}`)
-    .then(response => response.json())
+  const url = `../PHP/search_tours.php?${params.toString()}`;
+  console.log('Fetching tours from:', url);
+  
+  return fetch(url)
+    .then(response => {
+      console.log('Tour search response status:', response.status);
+      return response.json();
+    })
     .then(data => {
+      console.log('Tour search data received:', data);
       if (typeof displayTourResults === 'function') {
         displayTourResults(data);
+      } else {
+        console.error('displayTourResults function not found');
       }
+      return data; // Return the data for use by caller
     })
     .catch(error => {
       console.error('Error fetching tours:', error);
+      return [];
     });
 }
 
@@ -237,22 +272,125 @@ function clearTourResults() {
   currentSelection.tour = null;
 }
 
+// Format tour duration for display
+function formatTourDuration(days, hours) {
+  const daysNum = parseInt(days) || 0;
+  let hoursNum = 0;
+  
+  // Handle different hour formats: DOUBLE (2.5), TIME format ("04:30:00"), or integer
+  if (typeof hours === 'string' && hours.includes(':')) {
+    // TIME format: "04:30:00" -> 4.5 hours
+    const timeParts = hours.split(':');
+    hoursNum = parseInt(timeParts[0]) || 0;
+    if (timeParts[1]) {
+      hoursNum += (parseInt(timeParts[1]) || 0) / 60; // Add minutes as fraction
+    }
+  } else {
+    // DOUBLE or integer: 2.5, 4, etc.
+    hoursNum = parseFloat(hours) || 0;
+  }
+  
+  if (daysNum === 0 && hoursNum === 0) return '';
+  
+  if (daysNum === 0) {
+    // Format hours: 2.5 -> "2,5 uur", 4 -> "4 uur"
+    const hoursFormatted = hoursNum % 1 === 0 ? hoursNum.toString() : hoursNum.toFixed(1).replace('.', ',');
+    return `${hoursFormatted} uur`;
+  }
+  
+  if (hoursNum === 0) {
+    return `${daysNum} dag${daysNum > 1 ? 'en' : ''}`;
+  }
+  
+  // Both days and hours
+  const hoursFormatted = hoursNum % 1 === 0 ? hoursNum.toString() : hoursNum.toFixed(1).replace('.', ',');
+  return `${daysNum} dag${daysNum > 1 ? 'en' : ''} ${hoursFormatted} uur`;
+}
+
+/**
+ * Initialize tour picture slider
+ * @param {Object} tour - Tour object with Code for media lookup
+ */
+function initializeTourPictureSlider(tour) {
+    // Clean up existing slider
+    if (tourPictureSlider) {
+        tourPictureSlider.destroy();
+    }
+    
+    // Create new slider for tour images
+    if (typeof createPictureSlider === 'function') {
+        tourPictureSlider = createPictureSlider('product-main-slider', {
+            height: '400px',
+            clickToModal: true,
+            showCounter: true,
+            showNavigation: true
+        });
+        
+        // Load tour media by tourID
+        if (tour && tour.tourID) {
+            tourPictureSlider.loadMedia(tour.tourID);
+            console.log('Loading tour media for tourID:', tour.tourID);
+        }
+    } else {
+        console.error('createPictureSlider function not available');
+    }
+}
+
 // Display tour results function
 function displayTourResults(tours) {
+  console.log('displayTourResults called with:', tours);
+  
+  // Store tour results for later use (e.g., editing)
+  window.lastTourSearchResults = tours;
+  
   const container = document.getElementById("hotel-results");
-  if (!container) return;
+  if (!container) {
+    console.error('hotel-results container not found');
+    return;
+  }
   
   container.innerHTML = "";
   
-  if (!tours || tours.length === 0) {
+  // Check if we got an error response
+  if (tours && tours.error) {
+    console.error('Tour search error:', tours.error);
+    container.innerHTML = `<div class="no-results">Fout bij zoeken: ${tours.error}</div>`;
+    return;
+  }
+  
+  if (!tours || !Array.isArray(tours) || tours.length === 0) {
+    console.log('No tours to display');
     container.innerHTML = '<div class="no-results">Geen excursies gevonden</div>';
     return;
   }
   
+  console.log('Displaying', tours.length, 'tours');
+
   tours.forEach(tour => {
     const tourCard = document.createElement("div");
     tourCard.className = "hotel-card tour-card";
     tourCard.setAttribute("data-tour-code", tour.Code);
+    tourCard.setAttribute("data-tour-id", tour.tourID); // Add tourID for better matching
+    
+    // Calculate display price based on perPax/perTour - show per person price
+    const paxInput = document.getElementById('pax');
+    const pax = paxInput ? parseInt(paxInput.value) || 1 : 1;
+    
+    let displayPrice = 0;
+    let priceText = '';
+    
+    if (tour.perTour === '1') {
+      displayPrice = parseFloat(tour.Gross_raw) || 0;
+      priceText = `${tour.Currency} ${displayPrice.toFixed(2)} per tour`;
+    } else if (tour.perPax === '1') {
+      displayPrice = parseFloat(tour.Gross_raw) || 0; // Price per person
+      priceText = `${tour.Currency} ${displayPrice.toFixed(2)} p.p.`;
+    } else {
+      displayPrice = parseFloat(tour.Gross_raw) || 0;
+      priceText = `${tour.Currency} ${displayPrice.toFixed(2)}`;
+    }
+    
+    const durationText = formatTourDuration(tour.Days, tour.Hours);
     
     tourCard.innerHTML = `
       <div class="hotel-image">
@@ -262,9 +400,10 @@ function displayTourResults(tours) {
         <h3 class="hotel-name">${tour.Product}</h3>
         <p class="hotel-location">${tour.Locatie_stad}</p>
         <p class="hotel-description">${tour.Beschrijving_kort || ''}</p>
+        ${durationText ? `<p class="tour-duration">⏱️ ${durationText}</p>` : ''}
         <div class="hotel-price">
-          <span class="price-label">Vanaf: </span>
-          <span class="price-amount">${tour.Currency} ${tour.Prijs_vanaf}</span>
+          <span class="price-label">Prijs: </span>
+          <span class="price-amount">${priceText}</span>
         </div>
       </div>
     `;
@@ -281,6 +420,30 @@ function selectTour(tour, tourCard) {
     card.classList.remove("selected");
   });
   
+  // Clear any hotel selection when switching to tours
+  if (typeof currentSelection !== 'undefined') {
+    currentSelection.hotel = null;
+    currentSelection.room = null;
+    currentSelection.hotelCode = null;
+    currentSelection.roomType = null;
+  }
+  document.querySelectorAll(".hotel-card.selected").forEach(card => {
+    card.classList.remove("selected");
+  });
+  
+  // Clean up hotel picture slider when switching to tours
+  if (typeof hotelPictureSlider !== 'undefined' && hotelPictureSlider) {
+    hotelPictureSlider.destroy();
+    hotelPictureSlider = null;
+  }
+  
+  // Clear room selection dropdown
+  const roomSelect = document.getElementById("room-type-select");
+  if (roomSelect) {
+    roomSelect.innerHTML = '<option value="">Select a room type...</option>';
+    roomSelect.style.display = 'none';
+  }
+  
   // Mark new selection
   tourCard.classList.add("selected");
   currentSelection.tour = tour;
@@ -290,24 +453,415 @@ function selectTour(tour, tourCard) {
   if (productPanel) {
     productPanel.classList.add("visible");
     
-    // Update product info with tour details
+    // Update product info with tour details - force title update
     const titleElement = productPanel.querySelector('.section-title');
     if (titleElement) {
-      titleElement.textContent = tour.Product;
+      titleElement.textContent = tour.Product || 'Tour Information';
+    }
+
+    // Also update product title if it exists
+    const productTitle = document.getElementById('product-title');
+    if (productTitle) {
+      productTitle.textContent = tour.Product || 'Tour Information';
     }
     
-    // Initialize picture slider for tour
+    // Update description title for tours
+    const descriptionTitle = document.getElementById('description-title');
+    if (descriptionTitle) {
+      descriptionTitle.textContent = 'Tour omschrijving';
+    }
+    
+    // Clear hotel-specific content and load tour content
+    clearHotelContent();
+    loadTourContent(tour);
+    
+    // Clear any existing picture slider and initialize for tour
+    if (typeof clearPictureSlider === 'function') {
+      clearPictureSlider();
+    }
     if (typeof initializePictureSlider === 'function') {
       initializePictureSlider(tour.Code);
     }
+    
+    // Initialize tour time selection system with tourID instead of Code
+    if (typeof window.tourTimeManager !== 'undefined') {
+      console.log('Initializing tour time selection with tourID:', tour.tourID);
+      window.tourTimeManager.initialize(tour.tourID || tour.Code);
+    }
   }
   
-  // Enable the add button
-  const addBtn = document.getElementById('add-selection-btn');
-  if (addBtn) {
-    addBtn.style.display = 'block';
-    addBtn.classList.add('visible');
+  // Update and show the add button with pricing
+  updateTourAddButtonValue();
+}
+
+// Clear hotel-specific content when switching to tours
+function clearHotelContent() {
+  // Clear description
+  const descriptionContent = document.getElementById("product-description-content");
+  if (descriptionContent) {
+    descriptionContent.innerHTML = "";
   }
+  
+  // Clear checklist (inclusions/exclusions)
+  const checklist = document.getElementById("product-checklist");
+  if (checklist) {
+    checklist.innerHTML = "";
+  }
+  
+  // Clear extras list
+  const extrasList = document.getElementById("product-extras-list");
+  if (extrasList) {
+    extrasList.innerHTML = "";
+  }
+  
+  // Clear room selection dropdown and room cards
+  const roomSelect = document.getElementById("room-type-select");
+  if (roomSelect) {
+    roomSelect.innerHTML = '<option value="">Select a room type...</option>';
+    roomSelect.style.display = 'none';
+  }
+  
+  // Hide room selection label
+  const roomLabel = document.querySelector('label[for="room-type-select"]');
+  if (roomLabel) {
+    roomLabel.style.display = 'none';
+  }
+  
+  // Clear any room cards
+  const roomCards = document.querySelectorAll('.room-card');
+  roomCards.forEach(card => card.remove());
+  
+  // Clear picture slider content
+  const pictureContainer = document.querySelector('.picture-slider-container');
+  if (pictureContainer) {
+    pictureContainer.innerHTML = '';
+  }
+}
+
+// Clear tour-specific content when switching to hotels
+function clearTourContent() {
+  // Clear description
+  const descriptionContent = document.getElementById("product-description-content");
+  if (descriptionContent) {
+    descriptionContent.innerHTML = "";
+  }
+  
+  // Clear checklist (inclusions/exclusions)
+  const checklist = document.getElementById("product-checklist");
+  if (checklist) {
+    checklist.innerHTML = "";
+  }
+  
+  // Clear extras list
+  const extrasList = document.getElementById("product-extras-list");
+  if (extrasList) {
+    extrasList.innerHTML = "";
+  }
+  
+  // Clear picture slider content
+  const pictureContainer = document.querySelector('.picture-slider-container');
+  if (pictureContainer) {
+    pictureContainer.innerHTML = '';
+  }
+  
+  // Clear tour time selection
+  if (typeof window.tourTimeManager !== 'undefined') {
+    window.tourTimeManager.clear();
+  }
+}
+
+// Load tour-specific content
+function loadTourContent(tour) {
+  // Set tour description
+  const descriptionContent = document.getElementById("product-description-content");
+  if (descriptionContent && tour.Beschrijving_lang) {
+    descriptionContent.innerHTML = tour.Beschrijving_lang;
+  }
+  
+  // Initialize tour picture slider
+  initializeTourPictureSlider(tour);
+  
+  // Load tour options, inclusions, and extras
+  fetch(`../PHP/get_tour_options.php?code=${encodeURIComponent(tour.Code)}`)
+    .then(response => response.json())
+    .then(data => {
+      console.log('Fetched tour options:', data);
+      console.log('Tour code used:', tour.Code);
+      console.log('Inclusions count:', data.inclusions ? data.inclusions.length : 0);
+      console.log('Exclusions count:', data.exclusions ? data.exclusions.length : 0);
+      console.log('Extras count:', data.extras ? data.extras.length : 0);
+      
+      // Update tour currency with the correct value from API
+      if (data.currency) {
+        tour.Currency = data.currency;
+        console.log('Updated tour currency to:', data.currency);
+      }
+      
+      // Update tour with additional fields from get_tour_options
+      if (data.tour) {
+        tour.Inbounder = data.tour.Inbounder || tour.Inbounder;
+        tour.Supplier = data.tour.Supplier || tour.Supplier;
+        tour.Locaties_adres = data.tour.Locaties_adres || tour.Locaties_adres;
+        console.log('Updated tour fields - Inbounder:', tour.Inbounder, 'Supplier:', tour.Supplier);
+      }
+      
+      // Display inclusions and exclusions
+      const checklist = document.getElementById("product-checklist");
+      if (checklist) {
+        checklist.innerHTML = ""; // Clear existing
+        
+        // Add location and basic info
+        if (tour.Locatie_stad && tour.Locatie_land) {
+          const li = document.createElement("li");
+          li.innerHTML = `📍 <strong>Locatie: ${tour.Locatie_stad}, ${tour.Locatie_land}</strong>`;
+          li.style.listStyleType = "none";
+          checklist.appendChild(li);
+        }
+        
+        // Add duration if available
+        if (tour.Days || tour.Hours) {
+          const durationText = formatTourDuration(tour.Days, tour.Hours);
+          if (durationText) {
+            const li = document.createElement("li");
+            li.innerHTML = `⏱️ <strong>Duur: ${durationText}</strong>`;
+            li.style.listStyleType = "none";
+            checklist.appendChild(li);
+          }
+        }
+        
+        // Add inclusions
+        if (data.inclusions && data.inclusions.length > 0) {
+          data.inclusions.forEach(inclusion => {
+            const li = document.createElement("li");
+            li.innerHTML = `✅ <strong>${inclusion.description}</strong>`;
+            li.style.listStyleType = "none";
+            checklist.appendChild(li);
+          });
+        }
+        
+        // Add exclusions
+        if (data.exclusions && data.exclusions.length > 0) {
+          data.exclusions.forEach(exclusion => {
+            const li = document.createElement("li");
+            li.innerHTML = `❌ <strong>${exclusion.description}</strong>`;
+            li.style.listStyleType = "none";
+            checklist.appendChild(li);
+          });
+        }
+      }
+      
+      // Display optional extras
+      const extrasList = document.getElementById("product-extras-list");
+      if (extrasList && data.extras && data.extras.length > 0) {
+        extrasList.innerHTML = ""; // Clear existing
+        
+        data.extras.forEach((extra, index) => {
+          const extraDiv = document.createElement("div");
+          extraDiv.className = "product-extra";
+          
+          const canAddMore = extra.canAddMore ? parseInt(extra.canAddMore) : 0;
+          
+          if (canAddMore > 0) {
+            // Multi-unit: show plus/minus input (like hotels)
+            const minusBtn = document.createElement("button");
+            minusBtn.type = "button";
+            minusBtn.textContent = "-";
+            minusBtn.className = "extra-minus-btn";
+            
+            const plusBtn = document.createElement("button");
+            plusBtn.type = "button";
+            plusBtn.textContent = "+";
+            plusBtn.className = "extra-plus-btn";
+            
+            const qtyInput = document.createElement("input");
+            qtyInput.type = "number";
+            qtyInput.min = "0";
+            qtyInput.value = "0";
+            qtyInput.id = `tour-extra-qty-${index}`;
+            qtyInput.className = "extra-qty-input";
+            qtyInput.setAttribute('data-cost', extra.extra_cost);
+            qtyInput.setAttribute('data-per-pax', extra.perPax);
+            qtyInput.setAttribute('data-extra-name', extra.Extra || extra.description); // Add Extra field
+            qtyInput.addEventListener('change', updateTourAddButtonValue);
+            
+            const label = document.createElement("label");
+            label.htmlFor = qtyInput.id;
+            label.innerHTML = `${extra.description} (+${data.currency} ${parseFloat(extra.extra_cost).toFixed(2)}${extra.perPax ? ' p.p.' : ''})`;
+            
+            // Add event listeners for +/- buttons
+            minusBtn.addEventListener('click', () => {
+              const currentValue = parseInt(qtyInput.value) || 0;
+              if (currentValue > 0) {
+                qtyInput.value = currentValue - 1;
+                updateTourAddButtonValue();
+              }
+            });
+            
+            plusBtn.addEventListener('click', () => {
+              const currentValue = parseInt(qtyInput.value) || 0;
+              qtyInput.value = currentValue + 1;
+              updateTourAddButtonValue();
+            });
+            
+            extraDiv.appendChild(minusBtn);
+            extraDiv.appendChild(qtyInput);
+            extraDiv.appendChild(plusBtn);
+            extraDiv.appendChild(label);
+            
+          } else {
+            // Single checkbox (like before)
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = `tour-extra-${index}`;
+            checkbox.className = "extra-checkbox";
+            checkbox.setAttribute('data-cost', extra.extra_cost);
+            checkbox.setAttribute('data-per-pax', extra.perPax);
+            checkbox.setAttribute('data-extra-name', extra.Extra || extra.description); // Add Extra field
+            checkbox.addEventListener('change', updateTourAddButtonValue);
+            
+            const label = document.createElement("label");
+            label.htmlFor = `tour-extra-${index}`;
+            label.innerHTML = `${extra.description} (+${data.currency} ${parseFloat(extra.extra_cost).toFixed(2)}${extra.perPax ? ' p.p.' : ''})`;
+            
+            extraDiv.appendChild(checkbox);
+            extraDiv.appendChild(label);
+          }
+          
+          extrasList.appendChild(extraDiv);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error loading tour options:', error);
+      
+      // Fallback: show basic info
+      const checklist = document.getElementById("product-checklist");
+      if (checklist) {
+        checklist.innerHTML = "";
+        
+        if (tour.Locatie_stad && tour.Locatie_land) {
+          const li = document.createElement("li");
+          li.innerHTML = `📍 <strong>Locatie: ${tour.Locatie_stad}, ${tour.Locatie_land}</strong>`;
+          li.style.listStyleType = "none";
+          checklist.appendChild(li);
+        }
+      }
+    });
+}
+
+// Update tour add button with pricing
+function updateTourAddButtonValue() {
+  const addBtn = document.getElementById('add-selection-btn');
+  if (!addBtn || !currentSelection.tour) return;
+  
+  // Check if time selection is required and if one is selected
+  const timeSelection = (typeof window.tourTimeManager !== 'undefined') ? 
+      window.tourTimeManager.getCurrentSelection() : null;
+  
+  // If we have time selection system active, check if a timeslot is selected
+  const timeContainer = document.getElementById('tour-time-selection');
+  const hasTimeSelection = timeContainer && timeContainer.style.display !== 'none';
+  
+  if (hasTimeSelection) {
+    const hasMultipleSlots = document.querySelectorAll('.time-slot-card').length > 1;
+    const hasSelectedSlot = document.querySelector('.time-slot-card.selected') !== null;
+    
+    // If there are multiple time slots but none selected, hide the button
+    if (hasMultipleSlots && !hasSelectedSlot) {
+      addBtn.style.display = 'none';
+      return;
+    }
+  }
+  
+  const tour = currentSelection.tour;
+  const paxInput = document.getElementById('pax');
+  const pax = paxInput ? parseInt(paxInput.value) || 1 : 1;
+  
+  let totalPrice = 0;
+  let basePrice = parseFloat(tour.Gross_raw) || 0;
+  
+  if (tour.perTour === '1') {
+    totalPrice = basePrice;
+  } else if (tour.perPax === '1') {
+    totalPrice = basePrice * pax;
+  } else {
+    totalPrice = basePrice;
+  }
+  
+  // Add extras pricing
+  const extraCheckboxes = document.querySelectorAll('.extra-checkbox:checked');
+  const extraQuantities = document.querySelectorAll('.extra-qty-input');
+  let extrasTotal = 0;
+  
+  // Handle checkboxes (single items)
+  extraCheckboxes.forEach(checkbox => {
+    const extraCost = parseFloat(checkbox.getAttribute('data-cost')) || 0;
+    const perPax = checkbox.getAttribute('data-per-pax') === '1';
+    if (perPax) {
+      extrasTotal += extraCost * pax;
+    } else {
+      extrasTotal += extraCost;
+    }
+  });
+  
+  // Handle quantity inputs (multi-unit items)
+  extraQuantities.forEach(qtyInput => {
+    const quantity = parseInt(qtyInput.value) || 0;
+    if (quantity > 0) {
+      const extraCost = parseFloat(qtyInput.getAttribute('data-cost')) || 0;
+      const perPax = qtyInput.getAttribute('data-per-pax') === '1';
+      // For quantity inputs with perPax=1, the quantity represents how many people want this extra
+      // So we just multiply extraCost * quantity (not * total_pax)
+      extrasTotal += extraCost * quantity;
+    }
+  });
+  
+  totalPrice += extrasTotal;
+  
+  // Add time slot price modifier (per person pricing)
+  if (hasTimeSelection && timeSelection && timeSelection.timeslotId) {
+    // Get the price modifier from the time manager
+    const timeManagerSelection = timeSelection;
+    
+    // Try to get the selected timeslot data from the DOM
+    const selectedCard = document.querySelector('.time-slot-card.selected');
+    if (selectedCard) {
+      // Look for the stored price modifier in the timeslot data
+      // We need to access the original timeslot data that was used to create the card
+      const timeslotContainer = document.getElementById('tour-timeslots-list');
+      if (timeslotContainer) {
+        // Get all timeslot cards and find the selected one's price modifier
+        const allCards = timeslotContainer.querySelectorAll('.time-slot-card');
+        allCards.forEach(card => {
+          if (card.classList.contains('selected')) {
+            // Parse the price from the price element if it exists
+            const priceElement = card.querySelector('.time-slot-price');
+            if (priceElement && priceElement.textContent.trim()) {
+              const priceText = priceElement.textContent.trim();
+              const modifierMatch = priceText.match(/([+-])€(\d+\.?\d*)/);
+              if (modifierMatch) {
+                const sign = modifierMatch[1] === '-' ? -1 : 1;
+                const modifierAmount = parseFloat(modifierMatch[2]) || 0;
+                const priceModifier = sign * modifierAmount;
+                
+                // Price modifier is per person, so multiply by PAX
+                const timeslotPriceTotal = priceModifier * pax;
+                totalPrice += timeslotPriceTotal;
+                console.log('Added timeslot price modifier:', priceModifier, 'per person x', pax, 'people =', timeslotPriceTotal);
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+  
+  const currency = tour.Currency || 'EUR';
+  
+  addBtn.innerHTML = `Toevoegen: ${currency} ${totalPrice.toFixed(2)}`;
+  addBtn.style.display = 'block';
+  addBtn.classList.add('visible');
+  addBtn.disabled = false;
 }
 
 // Toggle save button state
@@ -345,7 +899,6 @@ function setupFormListeners() {
   const nameInput = document.getElementById('searchName');
   const tourCityInput = document.getElementById('searchTourCity');
   const tourNameInput = document.getElementById('searchTourName');
-  const tourPaxInput = document.getElementById('searchTourPax');
   const paxInput = document.getElementById('pax');
   const dateInput = document.getElementById('date');
 
@@ -388,6 +941,11 @@ function setupFormListeners() {
     if (currentSelection.hotel && currentSelection.room && typeof updateAddButtonValue === 'function') {
       updateAddButtonValue();
     }
+    
+    // Update tour pricing when PAX changes
+    if (currentSelection.tour && typeof updateTourAddButtonValue === 'function') {
+      updateTourAddButtonValue();
+    }
   }
 
   if (paxInput) paxInput.addEventListener('input', handlePaxNightsChange);
@@ -411,8 +969,22 @@ function setupAddButtonListener() {
     if (priceSpanLocal) priceSpanLocal.textContent = "";
 
     addBtn.addEventListener('click', () => {
-      if (!currentSelection.hotel || !currentSelection.room) {
-        alert('Selecteer eerst een hotel en kamer.');
+      const mainType = document.getElementById('mainType');
+      const selectedType = mainType ? mainType.value : '';
+      
+      // Validate selection based on type
+      if (selectedType === 'accommodatie') {
+        if (!currentSelection.hotel || !currentSelection.room) {
+          alert('Selecteer eerst een hotel en kamer.');
+          return;
+        }
+      } else if (selectedType === 'excursie') {
+        if (!currentSelection.tour) {
+          alert('Selecteer eerst een excursie.');
+          return;
+        }
+      } else {
+        alert('Selecteer eerst een type (accommodatie of excursie).');
         return;
       }
       
@@ -545,6 +1117,10 @@ function handleAddItem() {
         
         const tourDbItems = createTourDatabaseItems(tour);
         
+        console.log('Tour database items created:', tourDbItems);
+        console.log('First item structure:', JSON.stringify(tourDbItems[0], null, 2));
+        console.log('Tour object fields - Inbounder:', tour.Inbounder, 'Supplier:', tour.Supplier, 'tourID:', tour.tourID);
+        
         if (typeof saveToDBThenReloadSidebar === 'function') {
             saveToDBThenReloadSidebar(tourDbItems);
         }
@@ -559,27 +1135,259 @@ function createTourDatabaseItems(tour) {
     const dateInput = document.getElementById('date');
     const timeInput = document.getElementById('time');
     const paxInput = document.getElementById('pax');
-    const tourPaxInput = document.getElementById('searchTourPax');
     
-    const date = dateInput ? dateInput.value : '';
-    const time = timeInput ? timeInput.value : '';
+    const Datum_aanvang = dateInput ? dateInput.value : null;
+    const Tijd_aanvang = timeInput ? timeInput.value : '';
     const pax = paxInput ? parseInt(paxInput.value) || 1 : 1;
-    const tourPax = tourPaxInput ? parseInt(tourPaxInput.value) || pax : pax;
     
-    return [{
-        type: 'excursie',
-        date: date,
-        time: time,
-        pax: tourPax,
-        code: tour.Code,
-        product: tour.Product,
-        location: tour.Locatie_stad,
-        description: tour.Beschrijving_kort || '',
-        price_gross: tour.Gross_raw || 0,
-        price_nett: tour.Nett_raw || 0,
-        currency: tour.Currency || 'EUR',
-        inbounder: tour.Inbounder || ''
-    }];
+    // Get time selection data
+    const timeSelection = (typeof window.tourTimeManager !== 'undefined') ? 
+        window.tourTimeManager.getCurrentSelection() : null;
+    
+    console.log('Time selection for database save:', timeSelection);
+    
+    // Determine actual times and service description
+    let actualStartTime = Tijd_aanvang; // Default from time input
+    let actualEndTime = '';
+    let serviceDescription = '';
+    
+    if (timeSelection && timeSelection.timeslotId && timeSelection.timeslotId !== 'default') {
+        // Get the selected timeslot details
+        const selectedCard = document.querySelector(`[data-slot-id="${timeSelection.timeslotId}"]`);
+        if (selectedCard) {
+            const slotNameElement = selectedCard.querySelector('.time-slot-name');
+            // Store ONLY the clean slot name without any extra text for precise matching
+            serviceDescription = slotNameElement ? slotNameElement.textContent.trim() : '';
+            
+            // Use custom times if available, otherwise use slot times
+            if (timeSelection.customStartTime && timeSelection.customEndTime) {
+                actualStartTime = timeSelection.customStartTime;
+                actualEndTime = timeSelection.customEndTime;
+                // Don't add extra text to serviceDescription - keep it clean for restoration
+            } else {
+                // Get times from the display
+                const timeElements = selectedCard.querySelectorAll('.time-display');
+                if (timeElements.length >= 2) {
+                    actualStartTime = timeElements[0].textContent.trim();
+                    actualEndTime = timeElements[1].textContent.trim();
+                }
+            }
+        }
+    } else if (timeSelection && timeSelection.customStartTime && timeSelection.customEndTime) {
+        // Fallback for custom times without slot selection
+        actualStartTime = timeSelection.customStartTime;
+        actualEndTime = timeSelection.customEndTime;
+        serviceDescription = 'Custom Tour Times'; // Keep this clean without extra formatting
+    }
+    
+    console.log('Final tour times:', { actualStartTime, actualEndTime, serviceDescription });
+    
+    // Generate ReisID for tour - find next available sequence
+    const UID = window.currentUID || (window.location.search.match(/uid=([^&]+)/)?.[1] || '');
+    
+    const existingSequences = typeof tripItems !== 'undefined' ? tripItems
+        .map(item => {
+            if (item.id && item.id.includes('_')) {
+                const parts = item.id.split('_');
+                const lastPart = parts[parts.length - 1];
+                // Remove any letter suffixes (a, b, c) to get base sequence
+                const baseSequence = lastPart.replace(/[a-z]+$/, '');
+                return parseInt(baseSequence) || 0;
+            }
+            return 0;
+        })
+        .filter(seq => seq > 0) : [];
+    
+    // Find the next available sequence number
+    const maxSequence = existingSequences.length > 0 ? Math.max(...existingSequences) : 0;
+    const Sequence = (maxSequence + 1).toString().padStart(3, '0');
+    const ReisID = UID + '_' + Sequence;
+    
+    console.log('Creating new tour item with sequence:', Sequence, 'existing sequences:', existingSequences);
+    
+    // Calculate end date based on tour duration
+    let Datum_einde = null;
+    if (Datum_aanvang && (tour.Days || tour.Hours)) {
+        const startDate = new Date(Datum_aanvang);
+        const days = parseInt(tour.Days) || 0;
+        let hours = 0;
+        
+        // Handle different hour formats: DOUBLE (2.5), TIME format ("04:30:00"), or integer
+        if (typeof tour.Hours === 'string' && tour.Hours.includes(':')) {
+            // TIME format: "04:30:00" -> 4.5 hours
+            const timeParts = tour.Hours.split(':');
+            hours = parseInt(timeParts[0]) || 0;
+            if (timeParts[1]) {
+                hours += (parseInt(timeParts[1]) || 0) / 60; // Add minutes as fraction
+            }
+        } else {
+            // DOUBLE or integer: 2.5, 4, etc.
+            hours = parseFloat(tour.Hours) || 0;
+        }
+        
+        // Add days and hours to start date
+        const endDateTime = new Date(startDate);
+        endDateTime.setDate(endDateTime.getDate() + days);
+        
+        // Handle fractional hours: 2.5 hours = 2 hours + 30 minutes
+        const wholeHours = Math.floor(hours);
+        const minutes = Math.round((hours - wholeHours) * 60);
+        endDateTime.setHours(endDateTime.getHours() + wholeHours);
+        endDateTime.setMinutes(endDateTime.getMinutes() + minutes);
+        
+        // Format end date as YYYY-MM-DD
+        Datum_einde = endDateTime.toISOString().split('T')[0];
+    }
+    
+    let basePrice = parseFloat(tour.Gross_raw) || 0;
+    let Gross = 0;
+    
+    if (tour.perTour === '1') {
+        Gross = basePrice;
+    } else if (tour.perPax === '1') {
+        Gross = basePrice * pax;
+    } else {
+        Gross = basePrice;
+    }
+    
+    // Calculate net price
+    let Nett = tour.perPax === '1' ? (parseFloat(tour.Nett_raw) || 0) * pax : (parseFloat(tour.Nett_raw) || 0);
+    
+    // Add extras pricing
+    const extraCheckboxes = document.querySelectorAll('.extra-checkbox:checked');
+    const extraQuantities = document.querySelectorAll('.extra-qty-input');
+    let extrasTotal = 0;
+    let selectedExtras = [];
+    
+    // Handle checkboxes (single items)
+    extraCheckboxes.forEach(checkbox => {
+        const extraCost = parseFloat(checkbox.getAttribute('data-cost')) || 0;
+        const extraLabel = checkbox.nextElementSibling ? checkbox.nextElementSibling.textContent : 'Extra option';
+        const extraName = checkbox.getAttribute('data-extra-name') || extraLabel; // Get the actual Extra field
+        const perPax = checkbox.getAttribute('data-per-pax') === '1';
+        
+        let extraTotal = perPax ? extraCost * pax : extraCost;
+        extrasTotal += extraTotal;
+        
+        selectedExtras.push({
+            description: extraLabel,
+            extraName: extraName, // Store the Extra field value
+            cost: extraCost,
+            total: extraTotal
+        });
+    });
+    
+    // Handle quantity inputs (multi-unit items)
+    extraQuantities.forEach(qtyInput => {
+        const quantity = parseInt(qtyInput.value) || 0;
+        if (quantity > 0) {
+            const extraCost = parseFloat(qtyInput.getAttribute('data-cost')) || 0;
+            const extraLabel = qtyInput.getAttribute('data-description') || 'Extra option';
+            const extraName = qtyInput.getAttribute('data-extra-name') || extraLabel; // Get the actual Extra field
+            
+            let extraTotal = extraCost * quantity;
+            extrasTotal += extraTotal;
+            
+            selectedExtras.push({
+                description: extraLabel,
+                extraName: extraName, // Store the Extra field value
+                cost: extraCost,
+                quantity: quantity,
+                total: extraTotal
+            });
+        }
+    });
+    
+    // Calculate time pricing modifier
+    let timePriceModifier = 0;
+    if (timeSelection && timeSelection.timeslotId && timeSelection.timeslotId !== 'default') {
+        // Get the price modifier from the selected timeslot
+        const selectedCard = document.querySelector(`[data-slot-id="${timeSelection.timeslotId}"]`);
+        if (selectedCard) {
+            const priceElement = selectedCard.querySelector('.time-slot-price');
+            if (priceElement && priceElement.textContent.includes('€')) {
+                const priceText = priceElement.textContent;
+                const match = priceText.match(/[+-]?€(\d+(?:\.\d{2})?)/);
+                if (match) {
+                    timePriceModifier = parseFloat(match[1]);
+                    if (priceText.includes('-')) timePriceModifier = -timePriceModifier;
+                }
+            }
+        }
+    }
+    
+    Gross += timePriceModifier;
+    Nett += timePriceModifier * 0.8;
+    
+    // Main tour item using database field names
+    const dbItem = {
+        ReisID,
+        UID,
+        Sequence,
+        Datum_aanvang,
+        Tijd_aanvang: actualStartTime,
+        Datum_einde,
+        Tijd_einde: actualEndTime,
+        Locatie_stad: tour.Locatie_stad || '',
+        Locaties_adres: tour.Locaties_adres || '',
+        Inbounder: tour.Inbounder || '',
+        Inbounder_bookingref: '',
+        Supplier_naam: tour.Supplier || '',
+        Supplier_product: tour.Product || '',
+        Supplier_bookingref: '',
+        Service: serviceDescription, // Store timeslot name here
+        Product_type: 'tour',
+        Product_code: tour.tourID || tour.Code,
+        Product_id: tour.tourID || tour.Code, // Add Product_id for timeslot restoration
+        Nett,
+        Nett_valuta: tour.Currency || 'EUR',
+        Gross,
+        Gross_valuta: tour.Currency || 'EUR',
+        Beschrijving_kort: tour.Beschrijving_kort || '',
+        Beschrijving_lang: tour.Beschrijving_lang || '',
+        Note_random: '',
+        Note_alert: ''
+    };
+    
+    const dbItems = [dbItem];
+    
+    // Add extra items as separate entries if needed (similar to hotel extras)
+    if (selectedExtras.length > 0) {
+        const suffixes = 'abcdefghijklmnopqrstuvwxyz'.split('');
+        selectedExtras.forEach((extra, idx) => {
+            if (idx < suffixes.length) {
+                dbItems.push({
+                    ReisID: ReisID + suffixes[idx],
+                    UID,
+                    Sequence: Sequence, // Same sequence as main item
+                    Datum_aanvang,
+                    Tijd_aanvang,
+                    Datum_einde,
+                    Tijd_einde: '',
+                    Locatie_stad: tour.Locatie_stad || '',
+                    Locaties_adres: tour.Locaties_adres || '',
+                    Inbounder: tour.Inbounder || '',
+                    Inbounder_bookingref: '',
+                    Supplier_naam: tour.Supplier || '',
+                    Supplier_product: extra.extraName || extra.description,
+                    Supplier_bookingref: '',
+                    Service: '',
+                    Product_type: 'extra',
+                    Product_code: tour.tourID || tour.Code,
+                    Nett: extra.total * 0.8,
+                    Nett_valuta: tour.Currency || 'EUR',
+                    Gross: extra.total,
+                    Gross_valuta: tour.Currency || 'EUR',
+                    Beschrijving_kort: extra.description,
+                    Beschrijving_lang: `Extra voor ${tour.Product}`,
+                    Note_random: '',
+                    Note_alert: ''
+                });
+            }
+        });
+    }
+    
+    return dbItems;
 }
 
 // Handle update existing item

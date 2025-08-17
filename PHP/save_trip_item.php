@@ -80,20 +80,22 @@ if (!$data) {
 }
 
 error_log("New item insertion request - ReisID: " . ($data['ReisID'] ?? 'MISSING'));
+error_log("Bed_configuratie_ID received: " . var_export($data['Bed_configuratie_ID'] ?? 'NOT_SET', true));
+error_log("Full data received: " . json_encode($data));
 
 // Prepare SQL
 $sql = "INSERT INTO Reis_info (
     ReisID, UID, Sequence, Datum_aanvang, Tijd_aanvang, Datum_einde, Tijd_einde,
     Locatie_stad, Locaties_adres, Inbounder, Inbounder_bookingref,
     Supplier_naam, Supplier_product, Supplier_bookingref,
-    Service, Product_type, Product_code,
+    Service, Product_type, Product_code, Bed_configuratie_ID,
     Nett, Nett_valuta, Gross, Gross_valuta,
     Beschrijving_kort, Beschrijving_lang, Note_random, Note_alert
 ) VALUES (
     :ReisID, :UID, :Sequence, :Datum_aanvang, :Tijd_aanvang, :Datum_einde, :Tijd_einde,
     :Locatie_stad, :Locaties_adres, :Inbounder, :Inbounder_bookingref,
     :Supplier_naam, :Supplier_product, :Supplier_bookingref,
-    :Service, :Product_type, :Product_code,
+    :Service, :Product_type, :Product_code, :Bed_configuratie_ID,
     :Nett, :Nett_valuta, :Gross, :Gross_valuta,
     :Beschrijving_kort, :Beschrijving_lang, :Note_random, :Note_alert
 )";
@@ -119,6 +121,7 @@ $params = [
     'Service' => $data['Service'] ?? '',
     'Product_type' => $data['Product_type'] ?? '',
     'Product_code' => $data['Product_code'] ?? '',
+    'Bed_configuratie_ID' => !empty($data['Bed_configuratie_ID']) ? intval($data['Bed_configuratie_ID']) : null,
     'Nett' => $data['Nett'] ?? null,
     'Nett_valuta' => $data['Nett_valuta'] ?? '',
     'Gross' => $data['Gross'] ?? null,

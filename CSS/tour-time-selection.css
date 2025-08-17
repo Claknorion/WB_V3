@@ -1,0 +1,150 @@
+/* Tour Time Selection Styles */
+.tour-time-selection {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.tour-time-selection h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.tour-timeslots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.time-slot-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.time-slot-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+}
+
+.time-slot-card.selected {
+  border-color: #007bff;
+  background-color: #e7f3ff;
+}
+
+.time-slot-info {
+  flex: 1;
+}
+
+.time-slot-name {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.time-slot-duration {
+  font-size: 14px;
+  color: #666;
+}
+
+.time-slot-times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 15px;
+}
+
+.time-display {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.time-separator {
+  color: #999;
+}
+
+.time-slot-price {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.time-slot-price.modifier {
+  color: #ffc107;
+}
+
+.time-slot-price.hidden {
+  display: none;
+}
+
+/* Multi-day indicator */
+.multi-day-indicator {
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: #007bff;
+  color: white;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+/* Flexible Time Input */
+.flexible-time-inputs {
+  display: none;
+  margin-top: 10px;
+  padding: 15px;
+  background: #f0f8ff;
+  border-radius: 6px;
+  border: 1px solid #b3d9ff;
+}
+
+.flexible-time-inputs.active {
+  display: block;
+}
+
+.flexible-time-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.flexible-time-row label {
+  min-width: 80px;
+  font-weight: bold;
+  color: #333;
+}
+
+.flexible-time-row input[type="time"] {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.duration-display {
+  font-weight: bold;
+  color: #007bff;
+  margin-left: 10px;
+}
+
+.multi-day-indicator {
+  background: #ff6b6b;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 10px;
+}

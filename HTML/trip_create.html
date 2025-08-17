@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="../CSS/trip_create.css" />
   <link rel="stylesheet" href="../CSS/picture-slider.css" />
   <link rel="stylesheet" href="../CSS/picture-modal.css" />
+  <link rel="stylesheet" href="../CSS/tour-time-selection.css" />
+  
+  <!-- Quill.js Rich Text Editor -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script src="../JS/rich-text-editor.js"></script>
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -21,7 +27,7 @@
   <!-- Main Layout -->
   <div class="creator-wrapper">
     <div class="sidebar">
-      <h2 class="section-title">Trip Items</h2>
+      <h2 class="section-title">Reis overzicht</h2>
       <div class="item">Flight to Sydney</div>
       <div class="item">Hotel: Four Seasons</div>
       <div class="item">Day Trip: Blue Mountains</div>
@@ -105,19 +111,13 @@
 
         <!-- Dynamic fields for Excursies -->
         <div id="excursieFields" style="display:none;">
-          <!-- Inline input for Stad and Aantal personen -->
-          <div class="field inline">
-            <div class="field-left">
-              <label for="searchTourCity">Stad</label>
-              <input type="text" id="searchTourCity" placeholder="Bijv. Sydney" oninput="searchTours()" />
-            </div>
-            <div class="field-right">
-              <label for="searchTourPax">Aantal personen</label>
-              <input type="number" id="searchTourPax" min="1" placeholder="Bijv. 2" value="1" />
-            </div>
+          <!-- City search -->
+          <div class="field">
+            <label for="searchTourCity">Stad</label>
+            <input type="text" id="searchTourCity" placeholder="Bijv. Sydney" oninput="searchTours()" />
           </div>
-
-          <!-- Tour name filter -->
+          
+          <!-- Tour name search -->
           <div class="field">
             <label for="searchTourName">Zoek excursie naam</label>
             <input type="text" id="searchTourName" placeholder="Bijv. City Tour" oninput="filterTourResults()" />
@@ -143,7 +143,7 @@
 
       <!-- Description -->
       <div id="product-description" class="product-description">
-        <h3 class="description-title">Hotelbeschrijving</h3>
+        <h3 id="description-title" class="description-title">Beschrijving</h3>
         <!-- Static elements for included/excluded -->
         <p id="product-description-content"></p>
         <ul id="product-checklist"></ul>
@@ -151,10 +151,28 @@
         <!-- Optional extras with checkbox inputs -->
         <form id="product-options-form">
           <fieldset>
-            <legend>Optionele extra’s</legend>
+            <legend>Optionele extra's</legend>
             <div id="product-extras-list"></div>
           </fieldset>
         </form>
+      </div>
+
+      <!-- Tour time selection - standalone section -->
+      <div id="tour-time-selection" class="tour-time-selection" style="display:none;">
+        <div id="tour-timeslots-list" class="tour-timeslots-list">
+          <!-- Time slots will be populated by JavaScript -->
+        </div>
+        <div id="tour-flexible-time" class="tour-flexible-time" style="display:none;">
+          <div class="flexible-time-inputs">
+            <label for="tour-custom-start">Start tijd:</label>
+            <input type="time" id="tour-custom-start" />
+            <label for="tour-custom-end">Eind tijd:</label>
+            <input type="time" id="tour-custom-end" />
+          </div>
+        </div>
+        <div id="tour-time-summary" class="tour-time-summary">
+          <!-- Time selection summary -->
+        </div>
       </div>
 
 
@@ -232,6 +250,7 @@ window.addEventListener('DOMContentLoaded', function() {
 <!-- Modular Trip Creator Scripts - Load in order -->
 <script src="../JS/trip_database.js"></script>
 <script src="../JS/hotel_manager.js"></script>
+<script src="../JS/tour-time-manager.js"></script>
 <script src="../JS/trip_create_core.js"></script>
 </body>
 </html>

@@ -26,3 +26,9 @@ Icon?
 
 # Ignore node_modules (if used for frontend tooling)
 node_modules/
+
+# Ignore XLS data files (sensitive business data)
+XLS/
+*.xlsx
+*.xlsm
+*.csv

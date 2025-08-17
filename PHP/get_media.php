@@ -74,6 +74,11 @@ try {
         // Process location/URL
         $location = $item['Location'] ?? '';
         
+        // Check if this is a YouTube URL and adjust media type
+        if ($mediaType === 'video' && (strpos($location, 'youtube.com') !== false || strpos($location, 'youtu.be') !== false)) {
+            $mediaType = 'youtube'; // Picture slider expects 'youtube' type for YouTube videos
+        }
+        
         // Handle different path formats
         if (!empty($location) && !preg_match('/^https?:\/\//', $location)) {
             if (strpos($location, '/Pictures/') === 0) {

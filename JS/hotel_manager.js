@@ -113,6 +113,57 @@ function selectHotel(code, nights, currency = "€") {
   const productPanel = document.getElementById("product-info-panel");
   productPanel.classList.add("visible");
 
+  // Clear any tour selection when switching to hotels
+  if (typeof currentSelection !== 'undefined') {
+    currentSelection.tour = null;
+  }
+  document.querySelectorAll(".tour-card.selected").forEach(card => {
+    card.classList.remove("selected");
+  });
+
+  // Clear tour-specific content
+  if (typeof clearTourContent === 'function') {
+    clearTourContent();
+  }
+
+  // Update description title for hotels
+  const descriptionTitle = document.getElementById('description-title');
+  if (descriptionTitle) {
+    descriptionTitle.textContent = 'Hotelbeschrijving';
+  }
+
+  // Update panel title with hotel name - force update
+  const titleElement = productPanel.querySelector('.section-title');
+  console.log('Updating hotel panel title...', {
+    titleElement: titleElement,
+    hotelProduct: hotel.Product,
+    hotelProductnaam: hotel.Productnaam,
+    hotel: hotel
+  });
+  if (titleElement) {
+    const hotelName = hotel.Product || hotel.Productnaam;
+    if (hotelName) {
+      titleElement.textContent = hotelName;
+      console.log('Set title to hotel name:', hotelName);
+    } else {
+      titleElement.textContent = 'Hotel Information';
+      console.log('Set title to fallback: Hotel Information');
+    }
+  } else {
+    console.error('Title element not found in product panel');
+  }
+
+  // Also update product title if it exists
+  const productTitle = document.getElementById('product-title');
+  if (productTitle) {
+    const hotelName = hotel.Product || hotel.Productnaam;
+    if (hotelName) {
+      productTitle.textContent = hotelName;
+    } else {
+      productTitle.textContent = 'Hotel Information';
+    }
+  }
+
   // Initialize main picture slider for hotel
   initializeHotelPictureSlider(hotel);
 
@@ -120,7 +171,7 @@ function selectHotel(code, nights, currency = "€") {
   const descP = document.getElementById("product-description-content");
   if (descP) {
     if (hotel.Beschrijving_lang && hotel.Beschrijving_lang.trim() !== '') {
-      descP.textContent = hotel.Beschrijving_lang;
+      descP.innerHTML = hotel.Beschrijving_lang;
     } else {
       descP.innerHTML = '&nbsp;';
     }
@@ -283,17 +334,69 @@ function loadRoomTypesWithData(rooms, options, currency) {
     }
     card.appendChild(priceDiv);
     
+    // Bed configuration dropdown (initially hidden)
+    const bedConfigDiv = document.createElement("div");
+    bedConfigDiv.classList.add("bed-config-selection");
+    bedConfigDiv.style.display = "none";
+    
+    const bedLabel = document.createElement("label");
+    bedLabel.textContent = "Bed Configuration:";
+    bedLabel.style.fontSize = "0.9em";
+    bedLabel.style.fontWeight = "bold";
+    bedLabel.style.display = "block";
+    bedLabel.style.marginTop = "10px";
+    bedLabel.style.marginBottom = "5px";
+    
+    const bedSelect = document.createElement("select");
+    bedSelect.id = "bed-configuration"; // Add ID for easier selection
+    bedSelect.classList.add("bed-config-select");
+    bedSelect.style.width = "100%";
+    bedSelect.style.padding = "5px";
+    bedSelect.style.fontSize = "0.9em";
+    bedSelect.style.border = "1px solid #ddd";
+    bedSelect.style.borderRadius = "4px";
+    
+    // Default option
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "Loading bed options...";
+    bedSelect.appendChild(defaultOption);
+    
+    bedConfigDiv.appendChild(bedLabel);
+    bedConfigDiv.appendChild(bedSelect);
+    card.appendChild(bedConfigDiv);
+    
     card.addEventListener("click", () => {
       // Store current room selection
+      // Check if this is a different room
+      const isDifferentRoom = typeof currentSelection === 'undefined' || 
+                             !currentSelection.room || 
+                             currentSelection.room.ID !== room.ID;
+      
       if (typeof currentSelection !== 'undefined') {
+        console.log('🏠 Room selection triggered:');
+        console.log('   Previous room ID:', currentSelection.room?.ID);
+        console.log('   New room ID:', room.ID);
+        console.log('   Is different room?', isDifferentRoom);
+        
         currentSelection.room = room;
         currentSelection.roomType = room.Productnaam || "Onbekende kamer";
+        
+        if (isDifferentRoom) {
+          console.log('Different room selected, resetting bed configuration');
+          currentSelection.bedConfiguration = null; // Reset only for different rooms
+        } else {
+          console.log('🏠 Same room reselected, keeping bed configuration:', currentSelection.bedConfiguration);
+        }
       }
       
       container.querySelectorAll(".room-card").forEach(c => c.classList.remove("selected"));
       card.classList.add("selected");
-
-      // Update picture sliders with room-specific images
+      
+      // Load bed configurations for this room (only if different room)
+        if (isDifferentRoom) {
+            loadBedConfigurations(room.ID, bedSelect, bedConfigDiv);
+        }      // Update picture sliders with room-specific images
       if (typeof currentSelection !== 'undefined' && currentSelection.hotel && room) {
         console.log('Room selected - Hotel code:', currentSelection.hotel.Code);
         console.log('Room object:', room);
@@ -445,8 +548,10 @@ function calculateRoomAndExtras(hotel, roomType) {
           let pricePerUnit = opt && opt.Gross ? parseFloat(opt.Gross) : 0;
           let perPaxValue = opt && (typeof opt.perPax !== 'undefined') ? parseInt(opt.perPax) : 0;
           let perNight = opt && (typeof opt.perNight !== 'undefined') ? parseInt(opt.perNight) : 0;
+          
+          // For quantity inputs with perPax=1, the quantity represents how many people want this extra
+          // So we just use the quantity value directly (not multiply by total pax)
           let multiplier = val;
-          if (perPaxValue > 0) multiplier *= Math.ceil(pax / perPaxValue);
           if (perNight > 0) multiplier *= nights;
           let total = pricePerUnit * multiplier;
           extrasTotal += total;
@@ -471,6 +576,9 @@ function calculateRoomAndExtras(hotel, roomType) {
 
 // Update Add button value (live)
 function updateAddButtonValue() {
+  console.log('updateAddButtonValue called');
+  console.log('Current Selection:', currentSelection);
+  
   // Use stored selections instead of relying on DOM classes
   if (typeof currentSelection === 'undefined' || !currentSelection.hotel || !currentSelection.room) {
     console.log('No hotel or room selection stored:', currentSelection);
@@ -479,11 +587,17 @@ function updateAddButtonValue() {
   
   const hotel = currentSelection.hotel;
   const roomType = currentSelection.roomType;
+  
+  console.log('🏨 Hotel:', hotel?.Product);
+  console.log('🏠 Room Type:', roomType);
+  
   const calc = calculateRoomAndExtras(hotel, roomType);
+  console.log('💰 Calculation result:', calc);
+  
   const priceSpan = document.getElementById("add-total-price");
   const addBtn = document.getElementById("add-selection-btn");
   
-  console.log('Updating Add button with calc:', calc);
+  console.log('🔘 Add button element:', addBtn);
   
   if (addBtn) {
     addBtn.style.display = 'block';
@@ -494,7 +608,12 @@ function updateAddButtonValue() {
     const isEditMode = typeof editingItem !== 'undefined' && editingItem !== null;
     const buttonText = isEditMode ? 'Update' : 'Add';
     
-    addBtn.innerHTML = `${buttonText}: ${calc.roomCurrency} <span id="add-total-price">${(calc.grandTotal).toFixed(2)}</span>`;
+    const totalPrice = calc?.grandTotal || 0;
+    const currency = calc?.roomCurrency || 'EUR';
+    
+    addBtn.innerHTML = `${buttonText}: ${currency} <span id="add-total-price">${totalPrice.toFixed(2)}</span>`;
+    
+    console.log(`Button updated: "${buttonText}: ${currency} ${totalPrice.toFixed(2)}"`);
     
     // Ensure proper styling for edit mode
     if (isEditMode) {
@@ -504,7 +623,7 @@ function updateAddButtonValue() {
     }
   }
   if (priceSpan) {
-    priceSpan.textContent = `${(calc.grandTotal).toFixed(2)}`;
+    priceSpan.textContent = `${(calc?.grandTotal || 0).toFixed(2)}`;
   }
 }
 
@@ -592,6 +711,12 @@ function createDatabaseItems(hotel, roomType, calc, existingReisID = null) {
     const Note_alert = '';
 
     // Main item
+    const bedConfigurationId = (typeof currentSelection !== 'undefined' && currentSelection.bedConfiguration) ? 
+                               parseInt(currentSelection.bedConfiguration.id) : null;
+    
+    console.log('💾 Creating database item with bed configuration ID:', bedConfigurationId);
+    console.log('💾 Current selection bed config:', currentSelection?.bedConfiguration);
+    
     const dbItem = {
       ReisID,
       UID,
@@ -617,7 +742,8 @@ function createDatabaseItems(hotel, roomType, calc, existingReisID = null) {
       Beschrijving_kort,
       Beschrijving_lang,
       Note_random,
-      Note_alert
+      Note_alert,
+      Bed_configuratie_ID: bedConfigurationId
     };
     
     const dbItems = [dbItem];
@@ -776,6 +902,8 @@ function resetPictureSliders() {
 
 // Auto-select room and extras based on database data
 function autoSelectRoomAndExtras(mainItem, extras) {
+    console.log('Loading saved room and bed configuration...');
+    
     // Auto-select the room
     const roomCards = document.querySelectorAll('.room-card');
     roomCards.forEach(card => {
@@ -783,9 +911,14 @@ function autoSelectRoomAndExtras(mainItem, extras) {
         if (roomName && roomName.textContent.trim() === mainItem.Supplier_product) {
             card.click(); // This will select the room and show extras
             
-            // Wait for extras to load, then auto-select them
+            // Wait for extras and bed configurations to load, then auto-select them
             setTimeout(() => {
                 selectExtrasFromDatabase(extras);
+                
+                // Load and select bed configuration if available
+                if (mainItem.Bed_configuratie_ID) {
+                    selectBedConfigurationFromDatabase(mainItem.Bed_configuratie_ID);
+                }
             }, 200);
         }
     });
@@ -825,6 +958,150 @@ function selectExtrasFromDatabase(extras) {
             updateAddButtonValue();
         }
     }, 100);
+}
+
+// Select bed configuration based on database ID
+function selectBedConfigurationFromDatabase(bedConfigId) {
+    console.log('Selecting bed configuration ID:', bedConfigId);
+    
+    // Function to attempt selection
+    const attemptSelection = () => {
+        const bedConfigSelect = document.getElementById('bed-configuration');
+        if (!bedConfigSelect) {
+            return false;
+        }
+        
+        // Check if options are loaded (more than just the default "Loading..." option)
+        const options = bedConfigSelect.options;
+        if (options.length <= 1 || options[0].textContent.includes('Loading')) {
+            return false;
+        }
+        
+        // Find the option with matching value
+        let foundMatch = false;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value == bedConfigId) {
+                console.log('Selected bed configuration:', options[i].text);
+                bedConfigSelect.selectedIndex = i;
+                foundMatch = true;
+                
+                // Trigger change event to update the selection
+                const changeEvent = new Event('change', { bubbles: true });
+                bedConfigSelect.dispatchEvent(changeEvent);
+                
+                // Update currentSelection object
+                if (window.currentSelection) {
+                    window.currentSelection.bedConfiguration = {
+                        id: bedConfigId,
+                        name: options[i].text
+                    };
+                }
+                
+                break;
+            }
+        }
+        
+        if (!foundMatch) {
+            console.log('No matching bed configuration found for ID:', bedConfigId);
+        }
+        
+        return true; // Selection attempted successfully
+    };
+    
+    // Try selection immediately
+    if (attemptSelection()) {
+        return;
+    }
+    
+    // If not successful, retry with intervals
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = 300; // 300ms intervals
+    
+    const retryTimer = setInterval(() => {
+        retryCount++;
+        
+        if (attemptSelection() || retryCount >= maxRetries) {
+            clearInterval(retryTimer);
+            if (retryCount >= maxRetries) {
+                console.log('Failed to select bed configuration after retries');
+            }
+        }
+    }, retryInterval);
+}
+
+// Load bed configurations for a room
+async function loadBedConfigurations(roomId, selectElement, containerDiv) {
+    console.log('Loading bed configurations for room:', roomId);
+    
+    try {
+        const response = await fetch(`../PHP/bed_config_api.php?action=room_options&room_id=${roomId}`);
+        const data = await response.json();
+        
+        if (data.success && data.options.length > 0) {
+            
+            // Clear existing options
+            selectElement.innerHTML = '';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select bed configuration...';
+            selectElement.appendChild(defaultOption);
+            
+            // Add bed configuration options
+            data.options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.ID;
+                optionElement.textContent = `${option.Configuratie_naam} - ${option.Totaal_personen} people`;
+                optionElement.dataset.capacity = option.Totaal_personen;
+                optionElement.dataset.summary = option.bed_summary;
+                optionElement.dataset.notes = option.notes || '';
+                selectElement.appendChild(optionElement);
+            });
+            
+            // Show the bed configuration dropdown
+            containerDiv.style.display = 'block';
+            containerDiv.style.padding = '10px';
+            containerDiv.style.margin = '10px 0';
+            
+            // Handle bed configuration selection
+            selectElement.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                
+                if (selectedOption.value && typeof currentSelection !== 'undefined') {
+                    const bedConfig = {
+                        id: selectedOption.value,
+                        name: selectedOption.textContent,
+                        capacity: selectedOption.dataset.capacity,
+                        summary: selectedOption.dataset.summary,
+                        notes: selectedOption.dataset.notes
+                    };
+                    
+                    currentSelection.bedConfiguration = bedConfig;
+                    
+                    // Update add button if it exists
+                    if (typeof updateAddButtonValue === 'function') {
+                        updateAddButtonValue();
+                    }
+                } else if (typeof currentSelection !== 'undefined') {
+                    currentSelection.bedConfiguration = null;
+                } else {
+                    console.error('currentSelection is undefined!');
+                }
+            });
+            
+        } else {
+            // No bed configurations available
+            selectElement.innerHTML = '<option value="">No bed configurations available</option>';
+            containerDiv.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('❌ Error loading bed configurations:', error);
+        selectElement.innerHTML = '<option value="">Error loading bed options</option>';
+        containerDiv.style.display = 'block';
+    }
 }
 
 console.log("Hotel Manager - Module loaded");

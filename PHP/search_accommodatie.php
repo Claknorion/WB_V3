@@ -10,6 +10,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // if needed for CORS
 
 require_once 'db.php'; // adjust path if needed
+require_once 'rich-text-helpers.php'; // For rich text processing
 $pdo = connectDB();
 
 $stad = isset($_GET['stad']) ? trim($_GET['stad']) : '';
@@ -37,9 +38,10 @@ try {
                 LIMIT 1
             ) AS Foto
         FROM Product_accommodatie pa
-        LEFT JOIN Product_accommodatie_product p ON p.Code = pa.Code
+        LEFT JOIN Product_accommodatie_product p ON p.Code = pa.Code AND (p.Active IS NULL OR p.Active = 1)
         LEFT JOIN Inbounder_info pi ON pi.Code = pa.Inbounder
         WHERE pa.Locatie_stad LIKE :stad
+        AND (pa.Active IS NULL OR pa.Active = 1)
     ";
 
     if ($query !== '') {
@@ -86,8 +88,8 @@ try {
             'Product' => $row['Product'],
             'Locatie_stad' => $row['Locatie_stad'],
             'Locatie_straat' => $row['Locatie_straat'],
-            'Beschrijving_kort' => $row['Beschrijving_kort'],
-            'Beschrijving_lang' => $row['Beschrijving_lang'],
+            'Beschrijving_kort' => displayRichText($row['Beschrijving_kort']),
+            'Beschrijving_lang' => displayRichText($row['Beschrijving_lang']),
             'Inbounder' => $row['Inbounder'],
             'Prijs_vanaf' => $prijsVanaf,
             'Gross' => $formattedGross,
