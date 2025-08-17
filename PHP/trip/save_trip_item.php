@@ -1,7 +1,7 @@
 <?php
 // save_trip_item.php
 header('Content-Type: application/json');
-require_once '../PHP/db.php';
+require_once '../db.php';
 $pdo = connectDB();
 
 // Check if this is a form data request (sequence update) or JSON request (new item)

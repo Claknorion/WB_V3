@@ -70,7 +70,7 @@ class PictureSlider {
         this.showLoading();
         
         try {
-            const url = new URL('../PHP/get_media.php', window.location.href);
+            const url = new URL('../PHP/media/get_media.php', window.location.href);
             url.searchParams.set('code', code);
             if (additionalCode) {
                 url.searchParams.set('additional_code', additionalCode);

@@ -18,7 +18,7 @@ function loadSidebarFromDatabase() {
         return;
     }
     
-    fetch(`../PHP/get_trip_items.php?uid=${encodeURIComponent(uid)}`)
+    fetch(`../PHP/trip/get_trip_items.php?uid=${encodeURIComponent(uid)}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.items) {
@@ -95,7 +95,7 @@ function loadSidebarFromDatabase() {
 function saveToDBThenReloadSidebar(dbItems) {
     // Save all items to database
     Promise.all(dbItems.map(item => 
-        fetch('../PHP/save_trip_item.php', {
+        fetch('../PHP/trip/save_trip_item.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(item)
@@ -119,7 +119,7 @@ function saveToDBThenReloadSidebar(dbItems) {
 // Save trip item to database
 function saveTripItemToDB(item, callback) {
     console.log('Saving item to database:', item);
-    fetch('../PHP/save_trip_item.php', {
+    fetch('../PHP/trip/save_trip_item.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item)
@@ -142,7 +142,7 @@ function saveTripItemToDB(item, callback) {
 function loadItemFromDatabase(reisID) {
     const uid = window.currentUID || (window.location.search.match(/uid=([^&]+)/)?.[1] || '');
     
-    fetch(`../PHP/get_trip_items.php?uid=${encodeURIComponent(uid)}`)
+    fetch(`../PHP/trip/get_trip_items.php?uid=${encodeURIComponent(uid)}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.items) {
@@ -427,7 +427,7 @@ function deleteItemFromDatabase(reisID, callback) {
     formData.append('reis_id', reisID);
     formData.append('uid', uid);
     
-    fetch('../PHP/save_trip_item.php', {
+    fetch('../PHP/trip/save_trip_item.php', {
         method: 'POST',
         body: formData
     })
@@ -450,7 +450,7 @@ function deleteItemFromDatabase(reisID, callback) {
 function updateItemInDatabase(dbItems, callback) {
     // Save updated items to database
     Promise.all(dbItems.map(item => 
-        fetch('../PHP/save_trip_item.php', {
+        fetch('../PHP/trip/save_trip_item.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(item)
@@ -477,7 +477,7 @@ function getFileInfoFromDatabase(uid, callback) {
         return;
     }
     
-    const url = `../PHP/get_file_info.php?uid=${uid}`;
+    const url = `../PHP/file/get_file_info.php?uid=${uid}`;
     console.log('Fetching file info from:', url);
     
     fetch(url)
@@ -515,7 +515,7 @@ function getFileInfoFromDatabase(uid, callback) {
 function searchAccommodationsFromDatabase(searchParams, callback) {
     const { stad = '', naam = '' } = searchParams;
     
-    let url = '../PHP/search_accommodatie.php?';
+    let url = '../PHP/hotel/search_accommodatie.php?';
     if (stad) url += `stad=${encodeURIComponent(stad)}&`;
     if (naam) url += `naam=${encodeURIComponent(naam)}&`;
     
@@ -541,7 +541,7 @@ function getRoomTypesFromDatabase(hotelCode, callback) {
         return;
     }
     
-    const url = `../PHP/get_room_types.php?code=${encodeURIComponent(hotelCode)}`;
+    const url = `../PHP/hotel/get_room_types.php?code=${encodeURIComponent(hotelCode)}`;
     console.log('Fetching room types from:', url);
     
     fetch(url)
@@ -587,7 +587,7 @@ function formatDatabaseError(error, operation = 'database operation') {
 function testDatabaseConnection(callback) {
     console.log('Testing database connection...');
     
-    fetch('../PHP/test_connection.php')
+    fetch('../PHP/utils/test_connection.php')
         .then(response => response.json())
         .then(data => {
             console.log('Database connection test result:', data);
@@ -607,7 +607,7 @@ function exportTripData(uid, callback) {
         return;
     }
     
-    const url = `../PHP/export_trip_data.php?uid=${encodeURIComponent(uid)}`;
+    const url = `../PHP/utils/export_trip_data.php?uid=${encodeURIComponent(uid)}`;
     console.log('Exporting trip data from:', url);
     
     fetch(url)
@@ -633,7 +633,7 @@ function importTripData(uid, tripData, callback) {
     formData.append('uid', uid);
     formData.append('trip_data', JSON.stringify(tripData));
     
-    fetch('../PHP/import_trip_data.php', {
+    fetch('../PHP/utils/import_trip_data.php', {
         method: 'POST',
         body: formData
     })
@@ -661,7 +661,7 @@ function getTripStatistics(uid, callback) {
         return;
     }
     
-    const url = `../PHP/get_trip_statistics.php?uid=${encodeURIComponent(uid)}`;
+    const url = `../PHP/utils/get_trip_statistics.php?uid=${encodeURIComponent(uid)}`;
     console.log('Fetching trip statistics from:', url);
     
     fetch(url)

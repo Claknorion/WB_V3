@@ -20,7 +20,7 @@ function initializeHotelManager() {
 
 // Fetch hotels data from server
 function fetchHotelsData() {
-  fetch('../PHP/search_accommodatie.php?stad=')
+  fetch('../PHP/hotel/search_accommodatie.php?stad=')
     .then(response => response.json())
     .then(data => {
       console.log("Fetched hotel data:", data);
@@ -184,7 +184,7 @@ function selectHotel(code, nights, currency = "€") {
   if (extrasList) extrasList.innerHTML = "";
 
   // Load room types and options
-  fetch(`../PHP/get_room_types.php?code=${encodeURIComponent(hotel.Code)}`)
+  fetch(`../PHP/hotel/get_room_types.php?code=${encodeURIComponent(hotel.Code)}`)
     .then(response => response.json())
     .then(data => {
       const rooms = data.rooms || [];
@@ -1035,7 +1035,7 @@ async function loadBedConfigurations(roomId, selectElement, containerDiv) {
     console.log('Loading bed configurations for room:', roomId);
     
     try {
-        const response = await fetch(`../PHP/bed_config_api.php?action=room_options&room_id=${roomId}`);
+        const response = await fetch(`../PHP/hotel/bed_config_api.php?action=room_options&room_id=${roomId}`);
         const data = await response.json();
         
         if (data.success && data.options.length > 0) {

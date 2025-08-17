@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../PHP/db.php';
+require_once '../db.php';
 $pdo = connectDB();
 
 // Handle login POST request

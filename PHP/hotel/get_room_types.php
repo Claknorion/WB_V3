@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-require_once '../PHP/db.php';
+require_once '../db.php';
 require_once '../PHP/rich-text-helpers.php';
 $pdo = connectDB();
 

@@ -235,7 +235,7 @@ function searchTours() {
   if (city) params.append('stad', city);
   if (name) params.append('query', name);
   
-  const url = `../PHP/search_tours.php?${params.toString()}`;
+  const url = `../PHP/tour/search_tours.php?${params.toString()}`;
   console.log('Fetching tours from:', url);
   
   return fetch(url)
@@ -582,7 +582,7 @@ function loadTourContent(tour) {
   initializeTourPictureSlider(tour);
   
   // Load tour options, inclusions, and extras
-  fetch(`../PHP/get_tour_options.php?code=${encodeURIComponent(tour.Code)}`)
+  fetch(`../PHP/tour/get_tour_options.php?code=${encodeURIComponent(tour.Code)}`)
     .then(response => response.json())
     .then(data => {
       console.log('Fetched tour options:', data);
@@ -1472,7 +1472,7 @@ function handleUpdateItem() {
     formData.append('reis_id', editingItem);
     formData.append('uid', uid);
     
-    fetch('../PHP/save_trip_item.php', {
+    fetch('../PHP/trip/save_trip_item.php', {
         method: 'POST',
         body: formData
     })
@@ -1688,7 +1688,7 @@ function handleDeleteItem() {
         formData.append('reis_id', editingItem);
         formData.append('uid', uid);
         
-        fetch('../PHP/save_trip_item.php', {
+        fetch('../PHP/trip/save_trip_item.php', {
             method: 'POST',
             body: formData
         })
@@ -1849,7 +1849,7 @@ async function initializeFileData() {
     console.log('Fetching file info for UID:', uid);
     
     try {
-        const url = `../PHP/get_file_info.php?uid=${uid}`;
+        const url = `../PHP/file/get_file_info.php?uid=${uid}`;
         console.log('Fetching from URL:', url);
         
         const response = await fetch(url);

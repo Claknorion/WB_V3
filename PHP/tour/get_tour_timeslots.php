@@ -1,6 +1,6 @@
 <?php
 // get_tour_timeslots.php - Fetch available timeslots for a tour
-include 'db.php';
+require_once '../db.php';
 
 // Set content type to JSON
 header('Content-Type: application/json');

@@ -9,7 +9,7 @@ ob_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // if needed for CORS
 
-require_once 'db.php'; // adjust path if needed
+require_once '../db.php';
 require_once 'rich-text-helpers.php'; // For rich text processing
 $pdo = connectDB();
 

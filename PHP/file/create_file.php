@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 session_start();
 require_once 'randomUID.php';
-require_once 'db.php';
+require_once '../db.php';
 $pdo = connectDB();
 
 if (!isset($_SESSION['user']) || ($_SESSION['user']['Role'] !== 'employee' && $_SESSION['user']['Role'] !== 'admin')) {

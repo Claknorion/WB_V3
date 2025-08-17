@@ -1493,7 +1493,7 @@ if (isset($_GET['edit'])) {
         // Load available bed types
         async function loadBedTypes() {
             try {
-                const response = await fetch('../PHP/bed_settings_api.php?action=active');
+                const response = await fetch('../PHP/hotel/bed_settings_api.php?action=active');
                 const data = await response.json();
                 if (data.success) {
                     bedTypes = data.beds;
@@ -1508,7 +1508,7 @@ if (isset($_GET['edit'])) {
             if (!currentRoomId) return;
             
             try {
-                const response = await fetch(`../PHP/bed_config_api.php?action=list&room_id=${currentRoomId}`);
+                const response = await fetch(`../PHP/hotel/bed_config_api.php?action=list&room_id=${currentRoomId}`);
                 const data = await response.json();
                 if (data.success) {
                     bedConfigurations = data.configurations;
@@ -1686,7 +1686,7 @@ if (isset($_GET['edit'])) {
                 configurations: bedConfigurations
             };
             
-            console.log('Sending data to API:', data);            return fetch('../PHP/bed_config_api.php', {
+            console.log('Sending data to API:', data);            return fetch('../PHP/hotel/bed_config_api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

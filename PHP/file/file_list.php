@@ -1,11 +1,11 @@
 <?php
 session_start();
-require_once '../PHP/db.php';
+require_once '../db.php';
 $pdo = connectDB();
 
 // Check login
 if (!isset($_SESSION['user'])) {
-    header("Location: ../PHP/login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 

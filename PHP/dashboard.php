@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user'])) {
-    header("Location: ./PHP/login.php");
+    header("Location: ./auth/login.php");
     exit();
 }
 
@@ -197,12 +197,12 @@ $role = $_SESSION['user']['Role'];
             <div class="nav-section">
                 <h3>🏨 Product Management</h3>
                 <ul class="nav-links">
-                    <li><a href="../PHP/hotel_management.php"><span class="nav-icon">🏢</span>Hotel Management</a></li>
-                    <li><a href="../PHP/room_management.php"><span class="nav-icon">🛏️</span>Room Management</a></li>
-                    <li><a href="../PHP/tour_management.php"><span class="nav-icon">🎯</span>Tour Management</a></li>
-                    <li><a href="../PHP/tour_operator_management.php"><span class="nav-icon">🚌</span>Tour Operators</a></li>
-                    <li><a href="../PHP/inbounder_management.php"><span class="nav-icon">🏢</span>Inbounder Companies</a></li>
-                    <li><a href="../PHP/file_list.php"><span class="nav-icon">📁</span>File Management</a></li>
+                    <li><a href="hotel/hotel_management.php"><span class="nav-icon">🏢</span>Hotel Management</a></li>
+                    <li><a href="hotel/room_management.php"><span class="nav-icon">🛏️</span>Room Management</a></li>
+                    <li><a href="tour/tour_management.php"><span class="nav-icon">🎯</span>Tour Management</a></li>
+                    <li><a href="tour/tour_operator_management.php"><span class="nav-icon">🚌</span>Tour Operators</a></li>
+                    <li><a href="tour/inbounder_management.php"><span class="nav-icon">🏢</span>Inbounder Companies</a></li>
+                    <li><a href="file/file_list.php"><span class="nav-icon">📁</span>File Management</a></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -212,7 +212,7 @@ $role = $_SESSION['user']['Role'];
                 <h3>👥 User Management</h3>
                 <ul class="nav-links">
                     <li><a href="user_create.php"><span class="nav-icon">➕</span>Create User</a></li>
-                    <li><a href="../PHP/user_list.php"><span class="nav-icon">📋</span>User List</a></li>
+                    <li><a href="user/user_list.php"><span class="nav-icon">📋</span>User List</a></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -221,8 +221,8 @@ $role = $_SESSION['user']['Role'];
             <div class="nav-section">
                 <h3>⚙️ Administration</h3>
                 <ul class="nav-links">
-                    <li><a href="../PHP/admin_panel.php"><span class="nav-icon">🔧</span>Admin Panel</a></li>
-                    <li><a href="../PHP/system_settings.php"><span class="nav-icon">⚙️</span>System Settings</a></li>
+                    <li><a href="admin/admin_panel.php"><span class="nav-icon">🔧</span>Admin Panel</a></li>
+                    <li><a href="admin/system_settings.php"><span class="nav-icon">⚙️</span>System Settings</a></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -251,7 +251,7 @@ $role = $_SESSION['user']['Role'];
         </div>
 
         <div class="logout-section">
-            <a href="../PHP/logout.php" class="btn-logout">🚪 Log Out</a>
+            <a href="auth/logout.php" class="btn-logout">🚪 Log Out</a>
         </div>
     </div>
 </body>

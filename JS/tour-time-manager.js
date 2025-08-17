@@ -137,7 +137,7 @@ function initializeTourTimeSelection(tourCode) {
 async function fetchTourTimeslots(tourCode) {
   try {
     console.log('Fetching timeslots for tour:', tourCode);
-    const url = `../PHP/get_tour_timeslots.php?tour_id=${encodeURIComponent(tourCode)}`;
+    const url = `../PHP/tour/get_tour_timeslots.php?tour_id=${encodeURIComponent(tourCode)}`;
     console.log('API URL:', url);
     
     const response = await fetch(url);

@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 header('Content-Type: application/json');
 
-require_once '../PHP/db.php'; // or wherever your DB connection lives
+require_once '../db.php'; // or wherever your DB connection lives
 $pdo = connectDB();
 
 $code = $_GET['code'] ?? '';

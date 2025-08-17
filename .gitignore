@@ -41,3 +41,6 @@ Pictures/
 *.gif
 *.bmp
 *.webp
+
+# Ignore TEST folder (temporary development files)
+TEST/

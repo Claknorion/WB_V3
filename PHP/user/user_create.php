@@ -10,7 +10,7 @@ if (!isset($_SESSION['user']) || ($_SESSION['user']['Role'] !== 'admin' && $_SES
     exit();
 }
 
-require '../PHP/db.php';
+require '../db.php';
 $pdo = connectDB();
 
 $message = "";
